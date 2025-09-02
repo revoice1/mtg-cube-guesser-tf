@@ -775,6 +775,18 @@ export default function MTGCubeGame() {
 
                 {showAnswer && (
                   <div className="space-y-4">
+                    <Button
+                      onClick={gameMode === "infinite" ? () => startNewGame("infinite") : nextCard}
+                      className="w-full gap-2"
+                    >
+                      <Shuffle className="h-4 w-4" />
+                      {gameMode === "infinite"
+                        ? "New Card"
+                        : gameStats.cardsCompleted + 1 >= gameStats.totalCards
+                          ? "Finish Game"
+                          : "Next Card"}
+                    </Button>
+
                     <div
                       className={`p-4 rounded-lg border ${
                         isCorrect
@@ -799,18 +811,6 @@ export default function MTGCubeGame() {
                         className="mx-auto rounded-lg max-w-full"
                       />
                     )}
-
-                    <Button
-                      onClick={gameMode === "infinite" ? () => startNewGame("infinite") : nextCard}
-                      className="w-full gap-2"
-                    >
-                      <Shuffle className="h-4 w-4" />
-                      {gameMode === "infinite"
-                        ? "New Card"
-                        : gameStats.cardsCompleted + 1 >= gameStats.totalCards
-                          ? "Finish Game"
-                          : "Next Card"}
-                    </Button>
                   </div>
                 )}
               </CardContent>
