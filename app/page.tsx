@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Shuffle, Eye, EyeOff, Search, HelpCircle } from "lucide-react"
+import { Loader2, Shuffle, Eye, EyeOff, Search, HelpCircle, ChevronDown, ChevronUp } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -43,6 +43,11 @@ interface GameStats {
   highScore: number
 }
 
+const sessionHighScores = {
+  "5-card": 0,
+  "10-card": 0,
+}
+
 export default function MTGCubeGame() {
   const [cubeId, setCubeId] = useState("")
   const [loading, setLoading] = useState(false)
@@ -60,17 +65,13 @@ export default function MTGCubeGame() {
   const [isCorrect, setIsCorrect] = useState(false)
   const [lastGuess, setLastGuess] = useState("")
   const [showConfetti, setShowConfetti] = useState(false)
-
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
   const [gameMode, setGameMode] = useState<GameMode>("infinite")
   const [gameStats, setGameStats] = useState<GameStats>({
     currentScore: 0,
     cardsCompleted: 0,
     totalCards: 0,
     highScore: 0,
-  })
-  const [sessionHighScores, setSessionHighScores] = useState({
-    "5-card": 0,
-    "10-card": 0,
   })
 
   const MAX_GUESSES = 7
@@ -141,6 +142,7 @@ export default function MTGCubeGame() {
     const randomIndex = Math.floor(Math.random() * cubeData.cards.length)
     setSelectedCard(cubeData.cards[randomIndex])
     setGameStarted(true)
+    setIsPanelCollapsed(true) // Auto-collapse panel when game starts to save screen space
     setCurrentHint(0)
     setMaxHintRevealed(0)
     setShowAnswer(false)
@@ -391,6 +393,12 @@ export default function MTGCubeGame() {
     }
   }
 
+  const setSessionHighScores = (newScores: any) => {
+    // This function is a placeholder for setting session high scores
+    // In a real application, you would use a state management library or context to handle this
+    console.log("Setting session high scores:", newScores)
+  }
+
   return (
     <div className="min-h-screen bg-background p-4">
       {showConfetti && (
@@ -517,110 +525,139 @@ export default function MTGCubeGame() {
         </div>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Load Cube</CardTitle>
-            <CardDescription>Enter a Cube Cobra ID to load the cube and start playing</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-2">
-              <Input
-                className="bg-white"
-                placeholder="Enter Cube Cobra ID (e.g., 11sg)"
-                value={cubeId}
-                onChange={(e) => setCubeId(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && fetchCubeData()}
-                disabled={loading}
-              />
-              <Button onClick={fetchCubeData} disabled={loading || !cubeId.trim()}>
-                {loading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Loading...
-                  </>
-                ) : (
-                  "Load Cube"
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Load Cube</CardTitle>
+                {!isPanelCollapsed && (
+                  <CardDescription>Enter a Cube Cobra ID to load the cube and start playing</CardDescription>
                 )}
-              </Button>
+              </div>
+              {gameStarted && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
+                  className="gap-2"
+                >
+                  {isPanelCollapsed ? (
+                    <>
+                      <ChevronDown className="h-4 w-4" />
+                      Show Cube Options
+                    </>
+                  ) : (
+                    <>
+                      <ChevronUp className="h-4 w-4" />
+                      Hide Panel
+                    </>
+                  )}
+                </Button>
+              )}
             </div>
+          </CardHeader>
 
-            {error && (
-              <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <div className="text-destructive-foreground">
-                    <p className="font-medium">Failed to load cube</p>
-                    <p className="text-sm mt-1">{error}</p>
-                    <p className="text-xs mt-2 text-muted-foreground">
-                      Make sure you're using a valid Cube Cobra ID from a public cube.
-                    </p>
-                  </div>
-                </div>
+          {(!gameStarted || !isPanelCollapsed) && (
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Input
+                  className="bg-white"
+                  placeholder="Enter Cube Cobra ID (e.g., 11sg)"
+                  value={cubeId}
+                  onChange={(e) => setCubeId(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && fetchCubeData()}
+                  disabled={loading}
+                />
+                <Button onClick={fetchCubeData} disabled={loading || !cubeId.trim()}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Loading...
+                    </>
+                  ) : (
+                    "Load Cube"
+                  )}
+                </Button>
               </div>
-            )}
 
-            {loading && (
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="flex items-center gap-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                  <div>
-                    <p className="font-medium">Loading cube...</p>
-                    <p className="text-sm text-muted-foreground">Fetching cards from Cube Cobra</p>
+              {error && (
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <div className="text-destructive-foreground">
+                      <p className="font-medium">Failed to load cube</p>
+                      <p className="text-sm mt-1">{error}</p>
+                      <p className="text-xs mt-2 text-muted-foreground">
+                        Make sure you're using a valid Cube Cobra ID from a public cube.
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {cubeData && !loading && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                  <div>
-                    <p className="font-medium">Cube loaded successfully!</p>
-                    <p className="text-sm text-muted-foreground">{cubeData.cards.length} cards available</p>
+              {loading && (
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Loading cube...</p>
+                      <p className="text-sm text-muted-foreground">Fetching cards from Cube Cobra</p>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <div className="space-y-3">
-                  <p className="font-medium">Choose Game Mode:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <Button
-                      onClick={() => startNewGame("infinite")}
-                      className="gap-2 h-auto p-4 flex-col"
-                      variant={gameMode === "infinite" ? "default" : "outline"}
-                    >
-                      <Shuffle className="h-4 w-4" />
-                      <div className="text-center">
-                        <div className="font-medium">Infinite Mode</div>
-                        <div className="text-xs opacity-75">Keep playing forever</div>
-                      </div>
-                    </Button>
+              {cubeData && !loading && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                    <div>
+                      <p className="font-medium">Cube loaded successfully!</p>
+                      <p className="text-sm text-muted-foreground">{cubeData.cards.length} cards available</p>
+                    </div>
+                  </div>
 
-                    <Button
-                      onClick={() => startNewGame("5-card")}
-                      className="gap-2 h-auto p-4 flex-col"
-                      variant={gameMode === "5-card" ? "default" : "outline"}
-                    >
-                      <Shuffle className="h-4 w-4" />
-                      <div className="text-center">
-                        <div className="font-medium">5 Card Challenge</div>
-                        <div className="text-xs opacity-75">High Score: {sessionHighScores["5-card"]}</div>
-                      </div>
-                    </Button>
+                  <div className="space-y-3">
+                    <p className="font-medium">Choose Game Mode:</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <Button
+                        onClick={() => startNewGame("infinite")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "infinite" ? "default" : "outline"}
+                      >
+                        <Shuffle className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">Infinite Mode</div>
+                          <div className="text-xs opacity-75">Keep playing forever</div>
+                        </div>
+                      </Button>
 
-                    <Button
-                      onClick={() => startNewGame("10-card")}
-                      className="gap-2 h-auto p-4 flex-col"
-                      variant={gameMode === "10-card" ? "default" : "outline"}
-                    >
-                      <Shuffle className="h-4 w-4" />
-                      <div className="text-center">
-                        <div className="font-medium">10 Card Challenge</div>
-                        <div className="text-xs opacity-75">High Score: {sessionHighScores["10-card"]}</div>
-                      </div>
-                    </Button>
+                      <Button
+                        onClick={() => startNewGame("5-card")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "5-card" ? "default" : "outline"}
+                      >
+                        <Shuffle className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">5 Card Challenge</div>
+                          <div className="text-xs opacity-75">High Score: {sessionHighScores["5-card"]}</div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        onClick={() => startNewGame("10-card")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "10-card" ? "default" : "outline"}
+                      >
+                        <Shuffle className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">10 Card Challenge</div>
+                          <div className="text-xs opacity-75">High Score: {sessionHighScores["10-card"]}</div>
+                        </div>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
+              )}
+            </CardContent>
+          )}
         </Card>
 
         {gameStarted && gameMode !== "infinite" && (
