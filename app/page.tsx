@@ -472,7 +472,7 @@ export default function MTGCubeGame() {
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Casting Cost:</p>
             <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
-               {manaCost ? renderManaCost(manaCost) : "N/A"}
+               {selectedCard.mana_cost ? renderManaCost(selectedCard.mana_cost) : "N/A"}
             </Badge>
           </div>
         )
