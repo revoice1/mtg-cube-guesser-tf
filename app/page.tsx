@@ -18,14 +18,14 @@ import {
 // — Inserted for mana symbol support —
 const manaSymbolMap: Record<string, string> = {
   // Mono
-  W: "https://svgs.scryfall.io/card-symbols/W.svg",
-  U: "https://svgs.scryfall.io/card-symbols/U.svg",
-  B: "https://svgs.scryfall.io/card-symbols/B.svg",
-  R: "https://svgs.scryfall.io/card-symbols/R.svg",
-  G: "https://svgs.scryfall.io/card-symbols/G.svg",
-  C: "https://svgs.scryfall.io/card-symbols/C.svg",
-  S: "https://svgs.scryfall.io/card-symbols/S.svg", // Snow
-  X: "https://svgs.scryfall.io/card-symbols/X.svg",
+  w: "https://svgs.scryfall.io/card-symbols/W.svg",
+  u: "https://svgs.scryfall.io/card-symbols/U.svg",
+  b: "https://svgs.scryfall.io/card-symbols/B.svg",
+  r: "https://svgs.scryfall.io/card-symbols/R.svg",
+  g: "https://svgs.scryfall.io/card-symbols/G.svg",
+  c: "https://svgs.scryfall.io/card-symbols/C.svg",
+  s: "https://svgs.scryfall.io/card-symbols/S.svg", // Snow
+  x: "https://svgs.scryfall.io/card-symbols/X.svg",
 
   // Numbers
   0: "https://svgs.scryfall.io/card-symbols/0.svg",
@@ -51,37 +51,37 @@ const manaSymbolMap: Record<string, string> = {
   20: "https://svgs.scryfall.io/card-symbols/20.svg",
 
   // Hybrid
-  "W/U": "https://svgs.scryfall.io/card-symbols/WU.svg",
-  "W/B": "https://svgs.scryfall.io/card-symbols/WB.svg",
-  "U/B": "https://svgs.scryfall.io/card-symbols/UB.svg",
-  "U/R": "https://svgs.scryfall.io/card-symbols/UR.svg",
-  "B/R": "https://svgs.scryfall.io/card-symbols/BR.svg",
-  "B/G": "https://svgs.scryfall.io/card-symbols/BG.svg",
-  "R/G": "https://svgs.scryfall.io/card-symbols/RG.svg",
-  "R/W": "https://svgs.scryfall.io/card-symbols/RW.svg",
-  "G/W": "https://svgs.scryfall.io/card-symbols/GW.svg",
-  "G/U": "https://svgs.scryfall.io/card-symbols/GU.svg",
+  "w-u": "https://svgs.scryfall.io/card-symbols/WU.svg",
+  "w-b": "https://svgs.scryfall.io/card-symbols/WB.svg",
+  "u-b": "https://svgs.scryfall.io/card-symbols/UB.svg",
+  "u-r": "https://svgs.scryfall.io/card-symbols/UR.svg",
+  "b-r": "https://svgs.scryfall.io/card-symbols/BR.svg",
+  "b-g": "https://svgs.scryfall.io/card-symbols/BG.svg",
+  "g-r": "https://svgs.scryfall.io/card-symbols/RG.svg",
+  "r-w": "https://svgs.scryfall.io/card-symbols/RW.svg",
+  "g-w": "https://svgs.scryfall.io/card-symbols/GW.svg",
+  "g-u": "https://svgs.scryfall.io/card-symbols/GU.svg",
 
   // 2-color hybrids
-  "2/W": "https://svgs.scryfall.io/card-symbols/2W.svg",
-  "2/U": "https://svgs.scryfall.io/card-symbols/2U.svg",
-  "2/B": "https://svgs.scryfall.io/card-symbols/2B.svg",
-  "2/R": "https://svgs.scryfall.io/card-symbols/2R.svg",
-  "2/G": "https://svgs.scryfall.io/card-symbols/2G.svg",
+  "2/w": "https://svgs.scryfall.io/card-symbols/2W.svg",
+  "2/u": "https://svgs.scryfall.io/card-symbols/2U.svg",
+  "2/b": "https://svgs.scryfall.io/card-symbols/2B.svg",
+  "2/r": "https://svgs.scryfall.io/card-symbols/2R.svg",
+  "2/g": "https://svgs.scryfall.io/card-symbols/2G.svg",
 
   // Phyrexian
-  "W/P": "https://svgs.scryfall.io/card-symbols/WP.svg",
-  "U/P": "https://svgs.scryfall.io/card-symbols/UP.svg",
-  "B/P": "https://svgs.scryfall.io/card-symbols/BP.svg",
-  "R/P": "https://svgs.scryfall.io/card-symbols/RP.svg",
-  "G/P": "https://svgs.scryfall.io/card-symbols/GP.svg",
+  "w-p": "https://svgs.scryfall.io/card-symbols/WP.svg",
+  "u-p": "https://svgs.scryfall.io/card-symbols/UP.svg",
+  "b-p": "https://svgs.scryfall.io/card-symbols/BP.svg",
+  "r-p": "https://svgs.scryfall.io/card-symbols/RP.svg",
+  "g-p": "https://svgs.scryfall.io/card-symbols/GP.svg",
 
   // Special symbols
-  T: "https://svgs.scryfall.io/card-symbols/T.svg",  // Tap
-  Q: "https://svgs.scryfall.io/card-symbols/Q.svg",  // Untap
-  E: "https://svgs.scryfall.io/card-symbols/E.svg",  // Energy
-  P: "https://svgs.scryfall.io/card-symbols/P.svg",  // Generic Phyrexian
-  A: "https://svgs.scryfall.io/card-symbols/A.svg",  // Acorn
+  t: "https://svgs.scryfall.io/card-symbols/T.svg",  // Tap
+  q: "https://svgs.scryfall.io/card-symbols/Q.svg",  // Untap
+  e: "https://svgs.scryfall.io/card-symbols/E.svg",  // Energy
+  p: "https://svgs.scryfall.io/card-symbols/P.svg",  // Generic Phyrexian
+  a: "https://svgs.scryfall.io/card-symbols/A.svg",  // Acorn
   CHAOS: "https://svgs.scryfall.io/card-symbols/CHAOS.svg",
 };
 
