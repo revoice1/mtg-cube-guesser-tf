@@ -37,13 +37,13 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
       return {
         name: card.details.name,
-        mana_cost: mana_cost,
-        cmc: card.details.cmc || card.cmc || 0,
-        colors: card.details.colors || card.colors || [],
-        type_line: card.details.type || card.type_line || "",
-        set: card.details.set || "",
-        set_name: card.details.set_name || "",
-        oracle_text: card.details.oracle_text || "",
+        mana_cost: card.details.parsed_cost,
+        cmc: card.details.cmc || "N/A",
+        colors: card.details.colors|| [],
+        type_line: card.details.type || "N/A",
+        set: card.details.set || "N/A",
+        set_name: card.details.set_name || "N/A",
+        oracle_text: card.details.oracle_text || "N/A",
         image_uris: {
           normal: card.details.image_normal,
           small: card.details.image_small,
