@@ -17,25 +17,74 @@ import {
 
 // — Inserted for mana symbol support —
 const manaSymbolMap: Record<string, string> = {
-  W: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=W&type=symbol",
-  U: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=U&type=symbol",
-  B: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=B&type=symbol",
-  R: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=R&type=symbol",
-  G: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=G&type=symbol",
-  C: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=C&type=symbol",
-  X: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=X&type=symbol",
-  0: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=0&type=symbol",
-  1: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=1&type=symbol",
-  2: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=2&type=symbol",
-  3: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=3&type=symbol",
-  4: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=4&type=symbol",
-  5: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=5&type=symbol",
-  6: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=6&type=symbol",
-  7: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=7&type=symbol",
-  8: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=8&type=symbol",
-  9: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=9&type=symbol",
-  10: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=10&type=symbol",
-}
+  // Mono
+  W: "https://svgs.scryfall.io/card-symbols/W.svg",
+  U: "https://svgs.scryfall.io/card-symbols/U.svg",
+  B: "https://svgs.scryfall.io/card-symbols/B.svg",
+  R: "https://svgs.scryfall.io/card-symbols/R.svg",
+  G: "https://svgs.scryfall.io/card-symbols/G.svg",
+  C: "https://svgs.scryfall.io/card-symbols/C.svg",
+  S: "https://svgs.scryfall.io/card-symbols/S.svg", // Snow
+  X: "https://svgs.scryfall.io/card-symbols/X.svg",
+
+  // Numbers
+  0: "https://svgs.scryfall.io/card-symbols/0.svg",
+  1: "https://svgs.scryfall.io/card-symbols/1.svg",
+  2: "https://svgs.scryfall.io/card-symbols/2.svg",
+  3: "https://svgs.scryfall.io/card-symbols/3.svg",
+  4: "https://svgs.scryfall.io/card-symbols/4.svg",
+  5: "https://svgs.scryfall.io/card-symbols/5.svg",
+  6: "https://svgs.scryfall.io/card-symbols/6.svg",
+  7: "https://svgs.scryfall.io/card-symbols/7.svg",
+  8: "https://svgs.scryfall.io/card-symbols/8.svg",
+  9: "https://svgs.scryfall.io/card-symbols/9.svg",
+  10: "https://svgs.scryfall.io/card-symbols/10.svg",
+  11: "https://svgs.scryfall.io/card-symbols/11.svg",
+  12: "https://svgs.scryfall.io/card-symbols/12.svg",
+  13: "https://svgs.scryfall.io/card-symbols/13.svg",
+  14: "https://svgs.scryfall.io/card-symbols/14.svg",
+  15: "https://svgs.scryfall.io/card-symbols/15.svg",
+  16: "https://svgs.scryfall.io/card-symbols/16.svg",
+  17: "https://svgs.scryfall.io/card-symbols/17.svg",
+  18: "https://svgs.scryfall.io/card-symbols/18.svg",
+  19: "https://svgs.scryfall.io/card-symbols/19.svg",
+  20: "https://svgs.scryfall.io/card-symbols/20.svg",
+
+  // Hybrid
+  "W/U": "https://svgs.scryfall.io/card-symbols/WU.svg",
+  "W/B": "https://svgs.scryfall.io/card-symbols/WB.svg",
+  "U/B": "https://svgs.scryfall.io/card-symbols/UB.svg",
+  "U/R": "https://svgs.scryfall.io/card-symbols/UR.svg",
+  "B/R": "https://svgs.scryfall.io/card-symbols/BR.svg",
+  "B/G": "https://svgs.scryfall.io/card-symbols/BG.svg",
+  "R/G": "https://svgs.scryfall.io/card-symbols/RG.svg",
+  "R/W": "https://svgs.scryfall.io/card-symbols/RW.svg",
+  "G/W": "https://svgs.scryfall.io/card-symbols/GW.svg",
+  "G/U": "https://svgs.scryfall.io/card-symbols/GU.svg",
+
+  // 2-color hybrids
+  "2/W": "https://svgs.scryfall.io/card-symbols/2W.svg",
+  "2/U": "https://svgs.scryfall.io/card-symbols/2U.svg",
+  "2/B": "https://svgs.scryfall.io/card-symbols/2B.svg",
+  "2/R": "https://svgs.scryfall.io/card-symbols/2R.svg",
+  "2/G": "https://svgs.scryfall.io/card-symbols/2G.svg",
+
+  // Phyrexian
+  "W/P": "https://svgs.scryfall.io/card-symbols/WP.svg",
+  "U/P": "https://svgs.scryfall.io/card-symbols/UP.svg",
+  "B/P": "https://svgs.scryfall.io/card-symbols/BP.svg",
+  "R/P": "https://svgs.scryfall.io/card-symbols/RP.svg",
+  "G/P": "https://svgs.scryfall.io/card-symbols/GP.svg",
+
+  // Special symbols
+  T: "https://svgs.scryfall.io/card-symbols/T.svg",  // Tap
+  Q: "https://svgs.scryfall.io/card-symbols/Q.svg",  // Untap
+  E: "https://svgs.scryfall.io/card-symbols/E.svg",  // Energy
+  P: "https://svgs.scryfall.io/card-symbols/P.svg",  // Generic Phyrexian
+  A: "https://svgs.scryfall.io/card-symbols/A.svg",  // Acorn
+  CHAOS: "https://svgs.scryfall.io/card-symbols/CHAOS.svg",
+};
+
 
 function renderManaCost(manaCost: string | undefined) {
   if (!manaCost) return "No casting cost"
