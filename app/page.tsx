@@ -15,6 +15,42 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
+// — Inserted for mana symbol support —
+const manaSymbolMap: Record<string, string> = {
+  W: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=W&type=symbol",
+  U: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=U&type=symbol",
+  B: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=B&type=symbol",
+  R: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=R&type=symbol",
+  G: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=G&type=symbol",
+  C: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=C&type=symbol",
+  X: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=X&type=symbol",
+  0: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=0&type=symbol",
+  1: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=1&type=symbol",
+  2: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=2&type=symbol",
+  3: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=3&type=symbol",
+  4: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=4&type=symbol",
+  5: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=5&type=symbol",
+  6: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=6&type=symbol",
+  7: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=7&type=symbol",
+  8: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=8&type=symbol",
+  9: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=9&type=symbol",
+  10: "https://gatherer.wizards.com/Handlers/Image.ashx?size=small&name=10&type=symbol",
+}
+
+function renderManaCost(manaCost: string | undefined) {
+  if (!manaCost) return "No casting cost"
+  const symbols = manaCost.match(/{[^}]+}/g) || []
+  return symbols.map((sym, idx) => {
+    const key = sym.replace(/[{}]/g, "")
+    const src = manaSymbolMap[key]
+    return src ? (
+      <img key={idx} src={src} alt={key} className="inline w-5 h-5 mx-0.5 align-middle" />
+    ) : (
+      <span key={idx}>{sym}</span>
+    )
+  })
+}
+
 interface MTGCard {
   name: string
   mana_cost: string
@@ -342,7 +378,7 @@ export default function MTGCubeGame() {
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Casting Cost:</p>
             <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
-              {selectedCard.mana_cost || "No casting cost"}
+               {renderManaCost(selectedCard.mana_cost)}
             </Badge>
           </div>
         )
