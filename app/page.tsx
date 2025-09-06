@@ -85,64 +85,54 @@ const manaSymbolMap: Record<string, string> = {
   CHAOS: "https://svgs.scryfall.io/card-symbols/CHAOS.svg",
 };
 
-function renderManaCost(manaCost: string | undefined) {
-  if (!manaCost) return "No casting cost";
+function renderManaCost(manaCost: string[] | undefined): JSX.Element | string {
+  // Handle missing or empty cost arrays
+  if (!manaCost || manaCost.length === 0) {
+    return "No casting cost";
+  }
 
-  const symbols = manaCost.match(/{[^}]+}/g) || [];
-
-  // Strip `{}` and keep original
-  const parsed = symbols.map(sym => {
-    const key = sym.replace(/[{}]/g, "");
-    return { raw: sym, key };
+  // Parse the symbols—assuming the array contains strings like "{R}", "{U}", "3", etc.
+  // Normalize so each item is without braces if present
+  const parsed = manaCost.map(sym => {
+    const key = sym.startsWith("{") && sym.endsWith("}")
+      ? sym.slice(1, -1)
+      : sym;
+    return key;
   });
 
-  // Define sort order
+  // Sort in canonical order: generic numbers first, then WUBRG, etc.
   const colorOrder = ['W', 'U', 'B', 'R', 'G'];
-  const sortKey = (symbol: string): number => {
-    // Generic mana (0–20)
-    if (/^\d+$/.test(symbol)) return parseInt(symbol, 10);
-
-    // Special variables
-    if (symbol === 'X') return 100;
-    if (symbol === 'Y') return 101;
-    if (symbol === 'Z') return 102;
-
-    // Colorless
-    if (symbol === 'C') return 103;
-
-    // Mono-colored mana (WUBRG)
-    if (colorOrder.includes(symbol)) return 104 + colorOrder.indexOf(symbol);
-
-    // Hybrid mana
-    if (/^[WUBRG]\/[WUBRG]$/.test(symbol)) return 110;
-
-    // 2-color hybrid
-    if (/^2\/[WUBRG]$/.test(symbol)) return 111;
-
-    // Phyrexian mana
-    if (/^[WUBRG]\/P$/.test(symbol)) return 112;
-
-    // Snow, energy, etc.
-    return 120;
+  const getSortValue = (sym: string): number => {
+    if (/^\d+$/.test(sym)) return parseInt(sym, 10);           // Generic numbers
+    if (sym === 'X') return 100;                               // Variable X
+    if (sym === 'C') return 101;                               // Colorless
+    if (colorOrder.includes(sym)) return 102 + colorOrder.indexOf(sym); // Mono-colored
+    if (/^[WUBRG]\/[WUBRG]$/.test(sym)) return 110;               // Hybrid
+    if (/^2\/[WUBRG]$/.test(sym)) return 111;                    // Two-color hybrid
+    if (/^[WUBRG]\/P$/.test(sym)) return 112;                    // Phyrexian
+    return 120;                                                  // Others (S, T, etc.)
   };
 
-  // Sort using sortKey
-  const sorted = parsed.sort((a, b) => sortKey(a.key) - sortKey(b.key));
+  const sortedSymbols = parsed.sort((a, b) => getSortValue(a) - getSortValue(b));
 
-  // Render
-  return sorted.map((sym, idx) => {
-    const src = manaSymbolMap[sym.key];
-    return src ? (
-      <img
-        key={idx}
-        src={src}
-        alt={sym.key}
-        className="inline w-5 h-5 mx-0.5 align-middle"
-      />
-    ) : (
-      <span key={idx}>{sym.raw}</span>
-    );
-  });
+  // Render the sorted symbols using your icon map
+  return (
+    <>
+      {sortedSymbols.map((key, idx) => {
+        const src = manaSymbolMap[key];
+        return src ? (
+          <img
+            key={idx}
+            src={src}
+            alt={key}
+            className="inline w-5 h-5 mx-0.5 align-middle"
+          />
+        ) : (
+          <span key={idx}>{`{${key}}`}</span>
+        );
+      })}
+    </>
+  );
 }
 
 interface MTGCard {
