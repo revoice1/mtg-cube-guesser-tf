@@ -86,7 +86,7 @@ const manaSymbolMap: Record<string, string> = {
 };
 
 function renderManaCost(manaCost: string | undefined) {
-  if (!manaCost) return "No casting cost";
+  if (manaCost === null || manaCost === undefined || manaCost.trim() === "") return "No casting cost";
 
   const symbols = manaCost.match(/{[^}]+}/g) || [];
 
@@ -472,7 +472,7 @@ export default function MTGCubeGame() {
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Casting Cost:</p>
             <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
-               {selectedCard.mana_cost ? renderManaCost(selectedCard.mana_cost) : "N/A"}
+               {renderManaCost(selectedCard.mana_cost)}
             </Badge>
           </div>
         )
