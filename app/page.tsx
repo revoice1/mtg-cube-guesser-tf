@@ -439,7 +439,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Mana Value:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
               {selectedCard.cmc}
             </Badge>
           </div>
@@ -466,7 +466,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Type Line:</p>
-            <Badge variant="secondary" className="px-4 py-2">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
               {getRedactedTypeLine(selectedCard.type_line, selectedCard.name)}
             </Badge>
           </div>
@@ -475,7 +475,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Set:</p>
-            <Badge variant="secondary" className="px-4 py-2">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
               {selectedCard.set_name} ({selectedCard.set.toUpperCase()})
             </Badge>
           </div>
