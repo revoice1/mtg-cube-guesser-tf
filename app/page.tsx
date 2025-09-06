@@ -86,7 +86,7 @@ const manaSymbolMap: Record<string, string> = {
 };
 
 function renderManaCost(manaCost: string | undefined) {
-  if (manaCost === null || manaCost === undefined || manaCost.trim() === "") return "No casting cost";
+  if (!manaCost) return "No casting cost";
 
   const symbols = manaCost.match(/{[^}]+}/g) || [];
 
