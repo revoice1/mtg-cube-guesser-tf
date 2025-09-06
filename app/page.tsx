@@ -75,7 +75,7 @@ export default function MTGCubeGame() {
   })
 
   const MAX_GUESSES = 7
-  const hints = ["Mana Value", "Colors", "Mana Cost", "Type", "Set", "Oracle Text", "Card Art"]
+  const hints = ["Mana Value", "Colors", "Casting Cost", "Type", "Set", "Oracle Text", "Card Art"]
 
   const filteredCards = useMemo(() => {
     if (!cubeData?.cards || !guess.trim()) return []
@@ -337,12 +337,12 @@ export default function MTGCubeGame() {
             </div>
           </div>
         )
-      case 2: // Mana Cost
+      case 2: // Casting Cost
         return (
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Mana Cost:</p>
+            <p className="text-sm text-muted-foreground mb-2">Casting Cost:</p>
             <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
-              {selectedCard.mana_cost || "No mana cost"}
+              {selectedCard.mana_cost || "No casting cost"}
             </Badge>
           </div>
         )
@@ -468,7 +468,7 @@ export default function MTGCubeGame() {
                         <strong>Colors:</strong> The card's color identity
                       </li>
                       <li>
-                        <strong>Mana Cost:</strong> The exact mana symbols required
+                        <strong>Casting Cost:</strong> The exact mana symbols required
                       </li>
                       <li>
                         <strong>Type:</strong> Card type (creature, instant, etc.)
