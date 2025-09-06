@@ -105,15 +105,15 @@ function renderManaCost(manaCost: string[] | undefined): JSX.Element | string {
   });
 
   // Sort in canonical order: generic numbers first, then WUBRG, etc.
-  const colorOrder = ['W', 'U', 'B', 'R', 'G'];
+  const colorOrder = ['w', 'u', 'b', 'r', 'g'];
   const getSortValue = (sym: string): number => {
     if (/^\d+$/.test(sym)) return parseInt(sym, 10);           // Generic numbers
-    if (sym === 'X') return 100;                               // Variable X
-    if (sym === 'C') return 101;                               // Colorless
+    if (sym === 'x') return 100;                               // Variable X
+    if (sym === 'c') return 101;                               // Colorless
     if (colorOrder.includes(sym)) return 102 + colorOrder.indexOf(sym); // Mono-colored
-    if (/^[WUBRG]\/[WUBRG]$/.test(sym)) return 110;               // Hybrid
-    if (/^2\/[WUBRG]$/.test(sym)) return 111;                    // Two-color hybrid
-    if (/^[WUBRG]\/P$/.test(sym)) return 112;                    // Phyrexian
+    if (/^[wubrg]\/[wubrg]$/.test(sym)) return 110;               // Hybrid
+    if (/^2\/[wubrg]$/.test(sym)) return 111;                    // Two-color hybrid
+    if (/^[wubrg]\/P$/.test(sym)) return 112;                    // Phyrexian
     return 120;                                                  // Others (S, T, etc.)
   };
 
@@ -123,7 +123,7 @@ function renderManaCost(manaCost: string[] | undefined): JSX.Element | string {
   return (
     <>
       {sortedSymbols.map((key, idx) => {
-        const src = manaSymbolMap[key];
+        const src = manaSymbolMap[key.toLowerCase()];
         return src ? (
           <img
             key={idx}
@@ -444,21 +444,13 @@ export default function MTGCubeGame() {
             </Badge>
           </div>
         )
-      case 1: // Colors
+      case 1: // Color Identity
         return (
           <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">Colors:</p>
-            <div className="flex gap-2 justify-center">
-              {selectedCard.colors.length === 0 ? (
-                <Badge variant="outline">Colorless</Badge>
-              ) : (
-                selectedCard.colors.map((color) => (
-                  <Badge key={color} variant="secondary">
-                    {color}
-                  </Badge>
-                ))
-              )}
-            </div>
+            <p className="text-sm text-muted-foreground mb-2">Color Identity:</p>
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+              {selectedCard.colors.length === 0 ? "Colorless" : renderManaCost(selectedCard.color)}}
+            </Badge>
           </div>
         )
       case 2: // Casting Cost
