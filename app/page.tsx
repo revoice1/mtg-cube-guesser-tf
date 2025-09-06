@@ -87,7 +87,11 @@ const manaSymbolMap: Record<string, string> = {
 
 function renderManaCost(manaCost: string[] | undefined): JSX.Element | string {
   // Handle missing or empty cost arrays
-  if (!manaCost || manaCost.length === 0) {
+  if (
+  !manaCost ||                                 // null or undefined
+  manaCost.length === 0 ||                     // []
+  manaCost.every(s => s.trim() === "")         // [""] or ["", "  ", ...]
+  ){
     return "No casting cost";
   }
 
