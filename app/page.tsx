@@ -449,7 +449,7 @@ export default function MTGCubeGame() {
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Color Identity:</p>
             <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
-              {selectedCard.colors.length === 0 ? "Colorless" : renderManaCost(selectedCard.color)}}
+              {selectedCard.colors.length === 0 ? renderManaCost(["c"]) : renderManaCost(selectedCard.color)}
             </Badge>
           </div>
         )
