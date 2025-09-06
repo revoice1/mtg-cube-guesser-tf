@@ -37,8 +37,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
       return {
         name: card.details.name,
-        mana_cost: card.details.parsed_cost,
-        cmc: card.details.cmc || "N/A",
+        mana_cost: card.details.parsed_cost || [],
+        cmc: card.details.cmc,
         colors: card.details.colors|| [],
         type_line: card.details.type || "N/A",
         set: card.details.set || "N/A",
