@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useLocalStorage } from "@/lib/hooks"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // — Inserted for mana symbol support —
 const manaSymbolMap: Record<string, string> = {
@@ -239,6 +240,7 @@ export default function MTGCubeGame() {
   const [timerActive, setTimerActive] = useState(false)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [guessHistory, setGuessHistory] = useState<string[]>([])
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
 
   // Trivia mode states
   const [triviaQuestion, setTriviaQuestion] = useState<string>("")
@@ -973,7 +975,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Mana Value:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {selectedCard.cmc}
             </Badge>
           </div>
@@ -982,7 +984,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Color Identity:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {selectedCard.colors.length === 0 ? renderManaCost(["c"]) : renderManaCost(selectedCard.colors)}
             </Badge>
           </div>
@@ -991,7 +993,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Casting Cost:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
                {renderManaCost(selectedCard.mana_cost)}
             </Badge>
           </div>
@@ -1000,7 +1002,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Type Line:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {getRedactedTypeLine(selectedCard.type_line, selectedCard.name)}
             </Badge>
           </div>
@@ -1009,7 +1011,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Set:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {selectedCard.set_name} ({selectedCard.set.toUpperCase()})
             </Badge>
           </div>
@@ -1033,7 +1035,7 @@ export default function MTGCubeGame() {
               <img
                 src={selectedCard.image_uris.art_crop || "/placeholder.svg"}
                 alt="Card art"
-                className="mx-auto rounded-lg max-w-xs"
+                className="mx-auto rounded-lg max-w-xs animate-in fade-in zoom-in duration-700 hover:scale-105 transition-all cursor-pointer shadow-lg hover:shadow-2xl"
               />
             )}
           </div>
@@ -1045,7 +1047,16 @@ export default function MTGCubeGame() {
 
   // Component return
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
       {showConfetti && (
         <>
           <style>{`
@@ -1092,6 +1103,14 @@ export default function MTGCubeGame() {
               100% {
                 transform: scale(1) rotate(0deg);
                 opacity: 1;
+              }
+            }
+            @keyframes subtle-float {
+              0%, 100% {
+                transform: translateY(0px);
+              }
+              50% {
+                transform: translateY(-6px);
               }
             }
             .confetti-piece {
@@ -1151,127 +1170,203 @@ export default function MTGCubeGame() {
         </>
       )}
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
+      <div className="max-w-4xl mx-auto space-y-6 relative z-10">
+        <div className="text-center space-y-6">
           <div className="flex items-center justify-center gap-4">
-            <h1 className="text-4xl font-bold text-foreground">MTG Cube Guesser</h1>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0 bg-transparent">
-                  <HelpCircle className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>How to Play MTG Cube Guesser</DialogTitle>
-                  <DialogDescription>Learn the rules and gameplay mechanics</DialogDescription>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-1000 leading-tight">
+              MTG Cube Guesser
+            </h1>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon" className="shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogHeader className="flex-shrink-0">
+                  <DialogTitle>How to Play</DialogTitle>
+                  <DialogDescription>Choose a game mode and guess the mystery card!</DialogDescription>
                 </DialogHeader>
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <h3 className="font-semibold mb-2">🎯 Objective</h3>
-                    <p>
-                      Guess the randomly selected Magic: The Gathering card from a Cube Cobra cube using progressive
-                      hints.
-                    </p>
-                  </div>
+                <div className="overflow-y-auto flex-1 pr-2 -mr-2">
+                  <div className="space-y-6 text-sm">
+                    {/* Quick Start */}
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <h3 className="font-semibold mb-2 text-base">🚀 Quick Start</h3>
+                      <ol className="list-decimal list-inside space-y-1.5 text-sm">
+                        <li>Enter a Cube Cobra ID (e.g., "11sg")</li>
+                        <li>Choose a game mode</li>
+                        <li>Use hints to identify the mystery card</li>
+                        <li>Type to search and click to guess</li>
+                      </ol>
+                    </div>
 
-                  <div>
-                    <h3 className="font-semibold mb-2">🎮 How to Play</h3>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>Enter a valid Cube Cobra ID and click "Load Cube"</li>
-                      <li>Click "Start Game" to randomly select a card from the cube</li>
-                      <li>Use hints to narrow down your guess (each hint after the first costs a guess)</li>
-                      <li>Search and select your guess from the cube's card list</li>
-                      <li>Win by guessing correctly or lose after 7 incorrect guesses</li>
-                    </ol>
-                  </div>
+                    {/* Game Modes */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-base">🎮 Game Modes</h3>
+                      <div className="grid gap-2">
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground">🔄</span>
+                          <div>
+                            <strong>Infinite:</strong> Practice mode with unlimited cards
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground">🏆</span>
+                          <div>
+                            <strong>5-Card Challenge:</strong> Score points across 5 cards
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground">⏱️</span>
+                          <div>
+                            <strong>Timed:</strong> 60 seconds to guess as many as possible
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground">💀</span>
+                          <div>
+                            <strong>Hardcore:</strong> Only 3 total actions per card
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground">🧠</span>
+                          <div>
+                            <strong>Cube Trivia:</strong> Answer 10 questions about cube statistics
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <span className="text-muted-foreground">⚡</span>
+                          <div>
+                            <strong>Stats Challenge:</strong> 90-second trivia marathon
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div>
-                    <h3 className="font-semibold mb-2">⌨️ Keyboard Shortcuts</h3>
-                    <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>
-                        <strong>Arrow Right:</strong> Next hint (costs a guess)
-                      </li>
-                      <li>
-                        <strong>Arrow Left:</strong> Previous hint (free navigation)
-                      </li>
-                      <li>
-                        <strong>Enter:</strong> Submit guess (in search box)
-                      </li>
-                      <li>
-                        <strong>Ctrl+R:</strong> Reveal answer
-                      </li>
-                    </ul>
-                  </div>
+                    {/* How Hints Work */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-base">💡 Hints & Guessing</h3>
+                      <div className="space-y-2">
+                        <div className="bg-green-500/10 dark:bg-green-500/20 p-3 rounded-md">
+                          <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                            First hint is FREE! Each additional hint costs 1 guess.
+                          </p>
+                        </div>
+                        <div className="space-y-1.5">
+                          <p className="font-medium">Hints reveal in order:</p>
+                          <ol className="list-decimal list-inside space-y-0.5 ml-2 text-muted-foreground">
+                            <li>Mana Value (CMC)</li>
+                            <li>Color Identity</li>
+                            <li>Casting Cost</li>
+                            <li>Card Type</li>
+                            <li>Set Name</li>
+                            <li>Oracle Text (redacted)</li>
+                            <li>Card Artwork</li>
+                          </ol>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium">You have 7 total guesses:</p>
+                          <ul className="list-disc list-inside space-y-0.5 ml-2 text-muted-foreground">
+                            <li>Wrong card guess = -1 guess</li>
+                            <li>New hint = -1 guess</li>
+                            <li>Navigate previous hints = FREE</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div>
-                    <h3 className="font-semibold mb-2">💡 Hint System</h3>
-                    <p className="mb-2">Hints are revealed in this order:</p>
-                    <ol className="list-decimal list-inside space-y-1 ml-2">
-                      <li>
-                        <strong>Mana Value:</strong> The converted mana cost (free)
-                      </li>
-                      <li>
-                        <strong>Colors:</strong> The card's color identity
-                      </li>
-                      <li>
-                        <strong>Casting Cost:</strong> The exact mana symbols required
-                      </li>
-                      <li>
-                        <strong>Type:</strong> Card type (creature, instant, etc.)
-                      </li>
-                      <li>
-                        <strong>Set:</strong> Which Magic set the card is from
-                      </li>
-                      <li>
-                        <strong>Oracle Text:</strong> The card's rules text (names redacted)
-                      </li>
-                      <li>
-                        <strong>Card Art:</strong> The artwork from the card
-                      </li>
-                    </ol>
-                  </div>
+                    {/* Keyboard Shortcuts */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-base">⌨️ Shortcuts</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium mb-2">Game Controls:</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">→</kbd> Next hint
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">←</kbd> Previous hint
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> Submit guess
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+R</kbd> Reveal answer
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium mb-2">Search Navigation:</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">↓</kbd> Next result
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">↑</kbd> Previous result
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> Select highlighted
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Esc</kbd> Close search
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div>
-                    <h3 className="font-semibold mb-2">⚡ Guess System</h3>
-                    <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>
-                        You have <strong>7 total guesses</strong> before the game ends
-                      </li>
-                      <li>The first hint (Mana Value) is free</li>
-                      <li>Each additional hint costs 1 guess</li>
-                      <li>Each wrong card guess costs 1 guess</li>
-                      <li>Use the search box to find cards from the loaded cube</li>
-                    </ul>
-                  </div>
+                    {/* Accessibility & Theme */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-base">🎨 Theme & Accessibility</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                          <span>Dark mode toggle in header (sun/moon icon)</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs">⚡</span>
+                          </div>
+                          <span>Automatically detects your system preference</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs">💾</span>
+                          </div>
+                          <span>Theme preference saved across visits</span>
+                        </div>
+                      </div>
+                    </div>
 
-                  <div>
-                    <h3 className="font-semibold mb-2">🏆 Winning & Losing</h3>
-                    <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>
-                        <strong>Win:</strong> Guess the correct card name before running out of guesses
-                      </li>
-                      <li>
-                        <strong>Lose:</strong> Use all 7 guesses without finding the correct card
-                      </li>
-                      <li>You can reveal the answer at any time to end the game</li>
-                    </ul>
-                  </div>
-
-                  <div className="bg-muted p-3 rounded-lg">
-                    <p className="text-xs text-muted-foreground">
-                      <strong>Tip:</strong> Card names in oracle text and type lines are replaced with [REDACTED] to
-                      prevent spoilers!
-                    </p>
+                    {/* Tips */}
+                    <div className="bg-blue-500/10 dark:bg-blue-500/20 p-3 rounded-lg">
+                      <p className="text-xs">
+                        <strong>💡 Pro Tips:</strong>
+                      </p>
+                      <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 ml-2">
+                        <li>Card names are [REDACTED] in oracle text</li>
+                        <li>Use ↑/↓ arrows to navigate search results quickly</li>
+                        <li>Start typing to search the cube's cards</li>
+                        <li>High scores save automatically</li>
+                        <li>Fuzzy search helps with typos</li>
+                        <li>Toggle dark mode for comfortable viewing</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
-          <p className="text-muted-foreground">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
+          <p className="text-muted-foreground text-lg leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
         </div>
 
-        <Card>
+        <Card className="shadow-2xl border-white/30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ring-1 ring-white/20 dark:ring-white/10">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
@@ -1285,7 +1380,7 @@ export default function MTGCubeGame() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-                  className="gap-2"
+                  className="gap-2 hover:bg-white/60 dark:hover:bg-gray-800/60 transition-all duration-300 rounded-lg"
                 >
                   {isPanelCollapsed ? (
                     <>
@@ -1304,7 +1399,7 @@ export default function MTGCubeGame() {
           </CardHeader>
 
           {(!gameStarted || !isPanelCollapsed) && (
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex gap-2">
                 <Input
                   className="bg-white"
@@ -1369,7 +1464,7 @@ export default function MTGCubeGame() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       <Button
                         onClick={() => startNewGame("infinite")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white shadow-md"
                         variant={gameMode === "infinite" ? "default" : "outline"}
                       >
                         <Shuffle className="h-4 w-4" />
@@ -1381,7 +1476,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("5-card")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white shadow-md"
                         variant={gameMode === "5-card" ? "default" : "outline"}
                       >
                         <Trophy className="h-4 w-4" />
@@ -1393,7 +1488,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("timed")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-md"
                         variant={gameMode === "timed" ? "default" : "outline"}
                       >
                         <Timer className="h-4 w-4" />
@@ -1405,7 +1500,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("hardcore")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white shadow-md"
                         variant={gameMode === "hardcore" ? "default" : "outline"}
                       >
                         <BarChart3 className="h-4 w-4" />
@@ -1417,7 +1512,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("trivia")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white shadow-md"
                         variant={gameMode === "trivia" ? "default" : "outline"}
                       >
                         <Brain className="h-4 w-4" />
@@ -1429,7 +1524,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("stats-challenge")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white shadow-md"
                         variant={gameMode === "stats-challenge" ? "default" : "outline"}
                       >
                         <Zap className="h-4 w-4" />
@@ -1447,7 +1542,7 @@ export default function MTGCubeGame() {
         </Card>
 
         {gameStarted && gameMode !== "infinite" && (
-          <Card>
+          <Card className="shadow-xl border-white/30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ring-1 ring-white/20 dark:ring-white/10">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex gap-4">
@@ -1492,7 +1587,7 @@ export default function MTGCubeGame() {
         )}
 
         {gameStarted && (gameMode === "trivia" || gameMode === "stats-challenge") && (
-          <Card>
+          <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-purple-50/98 dark:from-gray-900/98 dark:to-purple-950/98 backdrop-blur-md ring-1 ring-purple-200/30 dark:ring-purple-800/30">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{gameMode === "trivia" ? "Cube Trivia" : "Stats Challenge"}</span>
@@ -1577,7 +1672,7 @@ export default function MTGCubeGame() {
 
         {gameStarted && selectedCard && gameMode !== "trivia" && gameMode !== "stats-challenge" && (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-blue-50/98 dark:from-gray-900/98 dark:to-blue-950/98 backdrop-blur-md ring-1 ring-blue-200/30 dark:ring-blue-800/30">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Hints
@@ -1640,14 +1735,14 @@ export default function MTGCubeGame() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-green-50/98 dark:from-gray-900/98 dark:to-green-950/98 backdrop-blur-md ring-1 ring-green-200/30 dark:ring-green-800/30">
               <CardHeader>
                 <CardTitle>Your Guess</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {!gameOver && lastGuess && !isCorrect && (
                   <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <p className="text-sm text-black">
+                    <p className="text-sm text-foreground">
                       <span className="font-medium">"{lastGuess}"</span> is not correct. Try again!
                     </p>
                   </div>
@@ -1661,21 +1756,41 @@ export default function MTGCubeGame() {
                       onChange={(e) => {
                         setGuess(e.target.value)
                         setShowSuggestions(e.target.value.trim().length > 0)
+                        setSelectedSuggestionIndex(-1)
                       }}
                       onFocus={() => setShowSuggestions(guess.trim().length > 0)}
                       onBlur={() => {
-                        setTimeout(() => setShowSuggestions(false), 150)
+                        setTimeout(() => {
+                          setShowSuggestions(false)
+                          setSelectedSuggestionIndex(-1)
+                        }, 150)
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && filteredCards.length > 0) {
-                          makeGuess(filteredCards[0].name)
+                          const selectedCard = selectedSuggestionIndex >= 0
+                            ? filteredCards[selectedSuggestionIndex]
+                            : filteredCards[0]
+                          makeGuess(selectedCard.name)
                         }
                         if (e.key === "Escape") {
                           setShowSuggestions(false)
+                          setSelectedSuggestionIndex(-1)
+                        }
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault()
+                          setSelectedSuggestionIndex(prev =>
+                            prev < filteredCards.length - 1 ? prev + 1 : prev
+                          )
+                        }
+                        if (e.key === "ArrowUp") {
+                          e.preventDefault()
+                          setSelectedSuggestionIndex(prev =>
+                            prev > -1 ? prev - 1 : -1
+                          )
                         }
                       }}
                       disabled={gameOver}
-                      className="text-sm text-black bg-white"
+                      className="text-sm text-foreground bg-background"
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 
@@ -1684,9 +1799,14 @@ export default function MTGCubeGame() {
                         {filteredCards.map((card, index) => (
                           <button
                             key={card.name}
-                            className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground border-b border-border last:border-b-0 text-sm"
+                            className={`w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground border-b border-border last:border-b-0 text-sm ${
+                              index === selectedSuggestionIndex
+                                ? 'bg-accent text-accent-foreground'
+                                : ''
+                            }`}
                             onClick={() => makeGuess(card.name)}
                             onMouseDown={(e) => e.preventDefault()}
+                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
                           >
                             {card.name}
                           </button>
@@ -1748,7 +1868,7 @@ export default function MTGCubeGame() {
         )}
 
         {!gameStarted && gameMode !== "infinite" && gameStats.cardsCompleted > 0 && (
-          <Card>
+          <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-yellow-50/98 dark:from-gray-900/98 dark:to-yellow-950/98 backdrop-blur-md ring-1 ring-yellow-200/30 dark:ring-yellow-800/30">
             <CardHeader>
               <CardTitle className="text-center">
                 {gameMode === "5-card" ? "5 Card Challenge" :
@@ -1779,6 +1899,42 @@ export default function MTGCubeGame() {
             </CardContent>
           </Card>
         )}
+      </div>
+
+      {/* Footer links */}
+      <div className="max-w-4xl mx-auto mt-8 mb-4 text-center">
+        <div className="flex items-center justify-center gap-4 flex-wrap">
+          <a
+            href="https://github.com/revoice1/mtg-cube-guesser-tf/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-lg hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 shadow-sm hover:shadow-md"
+            title="Request features or report issues"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+            Report Issues
+          </a>
+
+          <form action="https://www.paypal.com/donate" method="post" target="_top" className="inline-block">
+            <input type="hidden" name="business" value="LGYQVNXYXKDCJ" />
+            <input type="hidden" name="no_recurring" value="1" />
+            <input type="hidden" name="item_name" value="Help me continue to make this site better!" />
+            <input type="hidden" name="currency_code" value="USD" />
+            <button
+              type="submit"
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border border-white/30 dark:border-gray-700/30 rounded-lg hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 shadow-sm hover:shadow-md"
+              title="Support the development of this site"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              Support this project
+            </button>
+            <img alt="" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" className="hidden" />
+          </form>
+        </div>
       </div>
     </div>
   )
