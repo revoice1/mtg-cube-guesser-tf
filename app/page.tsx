@@ -190,6 +190,12 @@ interface Statistics {
 export default function MTGCubeGame() {
   const [cubeId, setCubeId] = useLocalStorage("lastCubeId", "")
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  // Handle client-side mounting
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   const [error, setError] = useState<string | null>(null)
   const [cubeData, setCubeData] = useState<CubeData | null>(null)
   const [selectedCard, setSelectedCard] = useState<MTGCard | null>(null)
@@ -1298,7 +1304,10 @@ export default function MTGCubeGame() {
                   onKeyDown={(e) => e.key === "Enter" && cubeId.trim() && fetchCubeData()}
                   disabled={loading}
                 />
-                <Button onClick={fetchCubeData} disabled={loading || !cubeId.trim()}>
+                <Button
+                  onClick={fetchCubeData}
+                  disabled={loading || (mounted && (!cubeId || cubeId.trim().length === 0))}
+                >
                   {loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
