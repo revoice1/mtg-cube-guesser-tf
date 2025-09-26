@@ -1693,7 +1693,7 @@ export default function MTGCubeGame() {
               <CardContent className="space-y-6">
                 {!gameOver && lastGuess && !isCorrect && (
                   <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
-                    <p className="text-sm text-black">
+                    <p className="text-sm text-foreground">
                       <span className="font-medium">"{lastGuess}"</span> is not correct. Try again!
                     </p>
                   </div>
