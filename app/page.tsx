@@ -973,7 +973,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Mana Value:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {selectedCard.cmc}
             </Badge>
           </div>
@@ -982,7 +982,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Color Identity:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {selectedCard.colors.length === 0 ? renderManaCost(["c"]) : renderManaCost(selectedCard.colors)}
             </Badge>
           </div>
@@ -991,7 +991,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Casting Cost:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
                {renderManaCost(selectedCard.mana_cost)}
             </Badge>
           </div>
@@ -1000,7 +1000,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Type Line:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {getRedactedTypeLine(selectedCard.type_line, selectedCard.name)}
             </Badge>
           </div>
@@ -1009,7 +1009,7 @@ export default function MTGCubeGame() {
         return (
           <div className="text-center">
             <p className="text-sm text-muted-foreground mb-2">Set:</p>
-            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono">
+            <Badge variant="secondary" className="text-lg px-4 py-2 font-mono animate-in zoom-in duration-500">
               {selectedCard.set_name} ({selectedCard.set.toUpperCase()})
             </Badge>
           </div>
@@ -1033,7 +1033,7 @@ export default function MTGCubeGame() {
               <img
                 src={selectedCard.image_uris.art_crop || "/placeholder.svg"}
                 alt="Card art"
-                className="mx-auto rounded-lg max-w-xs"
+                className="mx-auto rounded-lg max-w-xs animate-in fade-in zoom-in duration-700 hover:scale-105 transition-all cursor-pointer shadow-lg hover:shadow-2xl"
               />
             )}
           </div>
@@ -1045,7 +1045,16 @@ export default function MTGCubeGame() {
 
   // Component return
   return (
-    <div className="min-h-screen bg-background p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 relative overflow-hidden">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
+      </div>
       {showConfetti && (
         <>
           <style>{`
@@ -1092,6 +1101,14 @@ export default function MTGCubeGame() {
               100% {
                 transform: scale(1) rotate(0deg);
                 opacity: 1;
+              }
+            }
+            @keyframes subtle-float {
+              0%, 100% {
+                transform: translateY(0px);
+              }
+              50% {
+                transform: translateY(-6px);
               }
             }
             .confetti-piece {
@@ -1151,13 +1168,15 @@ export default function MTGCubeGame() {
         </>
       )}
 
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center space-y-2">
+      <div className="max-w-4xl mx-auto space-y-6 relative z-10">
+        <div className="text-center space-y-6">
           <div className="flex items-center justify-center gap-4">
-            <h1 className="text-4xl font-bold text-foreground">MTG Cube Guesser</h1>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-1000 leading-tight">
+              MTG Cube Guesser
+            </h1>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0 bg-transparent">
+                <Button variant="outline" size="icon" className="shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 shadow-lg hover:shadow-xl">
                   <HelpCircle className="h-4 w-4" />
                 </Button>
               </DialogTrigger>
@@ -1290,10 +1309,10 @@ export default function MTGCubeGame() {
               </DialogContent>
             </Dialog>
           </div>
-          <p className="text-muted-foreground">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
+          <p className="text-muted-foreground text-lg leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
         </div>
 
-        <Card>
+        <Card className="shadow-2xl border-white/30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ring-1 ring-white/20 dark:ring-white/10">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
@@ -1307,7 +1326,7 @@ export default function MTGCubeGame() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsPanelCollapsed(!isPanelCollapsed)}
-                  className="gap-2"
+                  className="gap-2 hover:bg-white/60 dark:hover:bg-gray-800/60 transition-all duration-300 rounded-lg"
                 >
                   {isPanelCollapsed ? (
                     <>
@@ -1326,7 +1345,7 @@ export default function MTGCubeGame() {
           </CardHeader>
 
           {(!gameStarted || !isPanelCollapsed) && (
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="flex gap-2">
                 <Input
                   className="bg-white"
@@ -1391,7 +1410,7 @@ export default function MTGCubeGame() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       <Button
                         onClick={() => startNewGame("infinite")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-orange-500 to-red-500 hover:from-orange-400 hover:to-red-400 text-white shadow-md"
                         variant={gameMode === "infinite" ? "default" : "outline"}
                       >
                         <Shuffle className="h-4 w-4" />
@@ -1403,7 +1422,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("5-card")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-white shadow-md"
                         variant={gameMode === "5-card" ? "default" : "outline"}
                       >
                         <Trophy className="h-4 w-4" />
@@ -1415,7 +1434,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("timed")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-blue-500 to-cyan-500 hover:from-blue-400 hover:to-cyan-400 text-white shadow-md"
                         variant={gameMode === "timed" ? "default" : "outline"}
                       >
                         <Timer className="h-4 w-4" />
@@ -1427,7 +1446,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("hardcore")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-red-600 to-pink-600 hover:from-red-500 hover:to-pink-500 text-white shadow-md"
                         variant={gameMode === "hardcore" ? "default" : "outline"}
                       >
                         <BarChart3 className="h-4 w-4" />
@@ -1439,7 +1458,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("trivia")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white shadow-md"
                         variant={gameMode === "trivia" ? "default" : "outline"}
                       >
                         <Brain className="h-4 w-4" />
@@ -1451,7 +1470,7 @@ export default function MTGCubeGame() {
 
                       <Button
                         onClick={() => startNewGame("stats-challenge")}
-                        className="gap-2 h-auto p-4 flex-col"
+                        className="gap-2 h-auto p-4 flex-col transition-all duration-300 hover:scale-105 hover:shadow-lg border-white/20 bg-gradient-to-br from-green-500 to-emerald-500 hover:from-green-400 hover:to-emerald-400 text-white shadow-md"
                         variant={gameMode === "stats-challenge" ? "default" : "outline"}
                       >
                         <Zap className="h-4 w-4" />
@@ -1469,7 +1488,7 @@ export default function MTGCubeGame() {
         </Card>
 
         {gameStarted && gameMode !== "infinite" && (
-          <Card>
+          <Card className="shadow-xl border-white/30 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md ring-1 ring-white/20 dark:ring-white/10">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex gap-4">
@@ -1514,7 +1533,7 @@ export default function MTGCubeGame() {
         )}
 
         {gameStarted && (gameMode === "trivia" || gameMode === "stats-challenge") && (
-          <Card>
+          <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-purple-50/98 dark:from-gray-900/98 dark:to-purple-950/98 backdrop-blur-md ring-1 ring-purple-200/30 dark:ring-purple-800/30">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 <span>{gameMode === "trivia" ? "Cube Trivia" : "Stats Challenge"}</span>
@@ -1599,7 +1618,7 @@ export default function MTGCubeGame() {
 
         {gameStarted && selectedCard && gameMode !== "trivia" && gameMode !== "stats-challenge" && (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card>
+            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-blue-50/98 dark:from-gray-900/98 dark:to-blue-950/98 backdrop-blur-md ring-1 ring-blue-200/30 dark:ring-blue-800/30 transform hover:scale-[1.02] transition-all duration-300">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Hints
@@ -1662,11 +1681,11 @@ export default function MTGCubeGame() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-green-50/98 dark:from-gray-900/98 dark:to-green-950/98 backdrop-blur-md ring-1 ring-green-200/30 dark:ring-green-800/30 transform hover:scale-[1.02] transition-all duration-300">
               <CardHeader>
                 <CardTitle>Your Guess</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {!gameOver && lastGuess && !isCorrect && (
                   <div className="p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
                     <p className="text-sm text-black">
@@ -1770,7 +1789,7 @@ export default function MTGCubeGame() {
         )}
 
         {!gameStarted && gameMode !== "infinite" && gameStats.cardsCompleted > 0 && (
-          <Card>
+          <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-yellow-50/98 dark:from-gray-900/98 dark:to-yellow-950/98 backdrop-blur-md ring-1 ring-yellow-200/30 dark:ring-yellow-800/30">
             <CardHeader>
               <CardTitle className="text-center">
                 {gameMode === "5-card" ? "5 Card Challenge" :
