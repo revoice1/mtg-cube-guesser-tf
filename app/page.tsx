@@ -668,7 +668,7 @@ export default function MTGCubeGame() {
       default:
         return null
     }
-  // End of renderHint
+  } // End of renderHint
 
   // Component return
   return (
