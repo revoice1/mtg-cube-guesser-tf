@@ -159,7 +159,7 @@ interface CubeData {
   cards: MTGCard[]
 }
 
-type GameMode = "infinite" | "5-card" | "10-card" | "timed" | "hardcore" | "trivia" | "stats-challenge"
+type GameMode = "infinite" | "5-card" | "timed" | "hardcore" | "trivia" | "stats-challenge"
 
 interface GameStats {
   currentScore: number
@@ -170,7 +170,6 @@ interface GameStats {
 
 interface HighScores {
   "5-card": number
-  "10-card": number
   "timed": number
   "hardcore": number
   "trivia": number
@@ -221,7 +220,6 @@ export default function MTGCubeGame() {
 
   const [highScores, setHighScores] = useLocalStorage<HighScores>("highScores", {
     "5-card": 0,
-    "10-card": 0,
     "timed": 0,
     "hardcore": 0,
     "trivia": 0,
@@ -609,7 +607,6 @@ export default function MTGCubeGame() {
       setLastGuess("")
       setShowConfetti(false)
       const totalCards = gameMode === "5-card" ? 5 :
-                          gameMode === "10-card" ? 10 :
                           gameMode === "timed" ? 999 :
                           gameMode === "hardcore" ? 3 : 0
       setGameStats({
@@ -680,7 +677,6 @@ export default function MTGCubeGame() {
 
       if (mode !== "infinite") {
         const totalCards = mode === "5-card" ? 5 :
-                          mode === "10-card" ? 10 :
                           mode === "timed" ? 999 :
                           mode === "hardcore" ? 3 : 0
         setGameStats({
@@ -1382,18 +1378,6 @@ export default function MTGCubeGame() {
                       </Button>
 
                       <Button
-                        onClick={() => startNewGame("10-card")}
-                        className="gap-2 h-auto p-4 flex-col"
-                        variant={gameMode === "10-card" ? "default" : "outline"}
-                      >
-                        <Trophy className="h-4 w-4" />
-                        <div className="text-center">
-                          <div className="font-medium">10 Card Challenge</div>
-                          <div className="text-xs opacity-75">High Score: {highScores["10-card"]}</div>
-                        </div>
-                      </Button>
-
-                      <Button
                         onClick={() => startNewGame("timed")}
                         className="gap-2 h-auto p-4 flex-col"
                         variant={gameMode === "timed" ? "default" : "outline"}
@@ -1483,7 +1467,6 @@ export default function MTGCubeGame() {
                 </div>
                 <div className="text-sm text-muted-foreground">
                   {gameMode === "5-card" ? "5 Card Challenge" :
-                   gameMode === "10-card" ? "10 Card Challenge" :
                    gameMode === "timed" ? "Timed Mode" :
                    gameMode === "hardcore" ? "Hardcore Mode" :
                    gameMode === "trivia" ? "Cube Trivia" :
@@ -1755,7 +1738,6 @@ export default function MTGCubeGame() {
             <CardHeader>
               <CardTitle className="text-center">
                 {gameMode === "5-card" ? "5 Card Challenge" :
-                 gameMode === "10-card" ? "10 Card Challenge" :
                  gameMode === "trivia" ? "Cube Trivia" :
                  gameMode === "stats-challenge" ? "Stats Challenge" :
                  gameMode === "timed" ? "Timed Mode" :
