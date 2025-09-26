@@ -1635,7 +1635,7 @@ export default function MTGCubeGame() {
 
         {gameStarted && selectedCard && gameMode !== "trivia" && gameMode !== "stats-challenge" && (
           <div className="grid md:grid-cols-2 gap-6">
-            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-blue-50/98 dark:from-gray-900/98 dark:to-blue-950/98 backdrop-blur-md ring-1 ring-blue-200/30 dark:ring-blue-800/30 transform hover:scale-[1.02] transition-all duration-300">
+            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-blue-50/98 dark:from-gray-900/98 dark:to-blue-950/98 backdrop-blur-md ring-1 ring-blue-200/30 dark:ring-blue-800/30">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   Hints
@@ -1698,7 +1698,7 @@ export default function MTGCubeGame() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-green-50/98 dark:from-gray-900/98 dark:to-green-950/98 backdrop-blur-md ring-1 ring-green-200/30 dark:ring-green-800/30 transform hover:scale-[1.02] transition-all duration-300">
+            <Card className="shadow-2xl border-white/30 bg-gradient-to-br from-white/98 to-green-50/98 dark:from-gray-900/98 dark:to-green-950/98 backdrop-blur-md ring-1 ring-green-200/30 dark:ring-green-800/30">
               <CardHeader>
                 <CardTitle>Your Guess</CardTitle>
               </CardHeader>
