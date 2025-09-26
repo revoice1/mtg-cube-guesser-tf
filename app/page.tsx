@@ -459,7 +459,7 @@ export default function MTGCubeGame() {
       const newGuessesUsed = guessesUsed + 1
       setGuessesUsed(newGuessesUsed)
 
-      if (newGuessesUsed >= MAX_GUESSES) {
+      if (newGuessesUsed >= (gameMode === "hardcore" ? 3 : MAX_GUESSES)) {
         setGameOver(true)
         setShowAnswer(true)
         return
@@ -1061,7 +1061,7 @@ export default function MTGCubeGame() {
                     className="flex-1"
                   >
                     {currentHint >= maxHintRevealed && !gameOver
-                      ? `Next Hint (${MAX_GUESSES - guessesUsed - 1} left)`
+                      ? `Next Hint (${(gameMode === "hardcore" ? 3 : MAX_GUESSES) - guessesUsed - 1} left)`
                       : `Next Hint`}
                     {hints[currentHint + 1] && ` - ${hints[currentHint + 1]}`}
                   </Button>
