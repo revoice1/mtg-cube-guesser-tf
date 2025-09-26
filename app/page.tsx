@@ -1174,12 +1174,28 @@ export default function MTGCubeGame() {
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-1000 leading-tight">
               MTG Cube Guesser
             </h1>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="icon" className="shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 shadow-lg hover:shadow-xl">
-                  <HelpCircle className="h-4 w-4" />
-                </Button>
-              </DialogTrigger>
+            <div className="flex items-center gap-2">
+              <form action="https://www.paypal.com/donate" method="post" target="_top">
+                <input type="hidden" name="business" value="LGYQVNXYXKDCJ" />
+                <input type="hidden" name="no_recurring" value="1" />
+                <input type="hidden" name="item_name" value="Help me continue to make this site better!" />
+                <input type="hidden" name="currency_code" value="USD" />
+                <input
+                  type="image"
+                  src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"
+                  name="submit"
+                  title="PayPal - The safer, easier way to pay online!"
+                  alt="Donate with PayPal button"
+                  className="h-8 hover:opacity-80 transition-opacity"
+                />
+                <img alt="" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1" className="hidden" />
+              </form>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="icon" className="shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <HelpCircle className="h-4 w-4" />
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
                 <DialogHeader className="flex-shrink-0">
                   <DialogTitle>How to Play</DialogTitle>
@@ -1308,6 +1324,7 @@ export default function MTGCubeGame() {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
           <p className="text-muted-foreground text-lg leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
         </div>
