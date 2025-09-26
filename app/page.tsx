@@ -1051,26 +1051,31 @@ export default function MTGCubeGame() {
           <style>{`
             @keyframes confetti-fall {
               0% {
-                transform: translateY(-100vh) rotate(0deg) scale(0);
+                top: -10%;
                 opacity: 1;
               }
-              10% {
-                transform: translateY(-80vh) rotate(120deg) scale(1);
+              100% {
+                top: 110%;
+                opacity: 0;
+              }
+            }
+            @keyframes confetti-rotate {
+              0% {
+                transform: rotate(0deg);
               }
               100% {
-                transform: translateY(100vh) rotate(720deg) scale(1);
-                opacity: 0;
+                transform: rotate(720deg);
               }
             }
             @keyframes confetti-drift {
               0%, 100% {
-                transform: translateX(0);
+                left: 0px;
               }
-              33% {
-                transform: translateX(-30px);
+              25% {
+                left: -50px;
               }
-              66% {
-                transform: translateX(30px);
+              75% {
+                left: 50px;
               }
             }
             @keyframes success-bounce {
@@ -1093,6 +1098,7 @@ export default function MTGCubeGame() {
               width: 10px;
               height: 14px;
               position: absolute;
+              top: -10%;
             }
           `}</style>
           <div className="fixed inset-0 pointer-events-none z-50">
@@ -1112,9 +1118,9 @@ export default function MTGCubeGame() {
                     style={{
                       left: `${randomLeft}%`,
                       background: randomColor,
-                      animation: `confetti-fall ${randomDuration}s ease-out forwards ${randomDelay}s, confetti-drift ${randomDuration}s ease-in-out infinite ${randomDelay}s`,
-                      transform: `rotate(${randomRotation}deg)`,
+                      animation: `confetti-fall ${randomDuration}s linear forwards ${randomDelay}s, confetti-rotate ${randomDuration}s linear infinite ${randomDelay}s`,
                       borderRadius: Math.random() > 0.5 ? '0%' : '50%',
+                      position: 'absolute',
                     }}
                   />
                 )
