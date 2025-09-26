@@ -240,6 +240,7 @@ export default function MTGCubeGame() {
   const [timerActive, setTimerActive] = useState(false)
   const [currentStreak, setCurrentStreak] = useState(0)
   const [guessHistory, setGuessHistory] = useState<string[]>([])
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
 
   // Trivia mode states
   const [triviaQuestion, setTriviaQuestion] = useState<string>("")
@@ -1706,21 +1707,41 @@ export default function MTGCubeGame() {
                       onChange={(e) => {
                         setGuess(e.target.value)
                         setShowSuggestions(e.target.value.trim().length > 0)
+                        setSelectedSuggestionIndex(-1)
                       }}
                       onFocus={() => setShowSuggestions(guess.trim().length > 0)}
                       onBlur={() => {
-                        setTimeout(() => setShowSuggestions(false), 150)
+                        setTimeout(() => {
+                          setShowSuggestions(false)
+                          setSelectedSuggestionIndex(-1)
+                        }, 150)
                       }}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && filteredCards.length > 0) {
-                          makeGuess(filteredCards[0].name)
+                          const selectedCard = selectedSuggestionIndex >= 0
+                            ? filteredCards[selectedSuggestionIndex]
+                            : filteredCards[0]
+                          makeGuess(selectedCard.name)
                         }
                         if (e.key === "Escape") {
                           setShowSuggestions(false)
+                          setSelectedSuggestionIndex(-1)
+                        }
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault()
+                          setSelectedSuggestionIndex(prev =>
+                            prev < filteredCards.length - 1 ? prev + 1 : prev
+                          )
+                        }
+                        if (e.key === "ArrowUp") {
+                          e.preventDefault()
+                          setSelectedSuggestionIndex(prev =>
+                            prev > -1 ? prev - 1 : -1
+                          )
                         }
                       }}
                       disabled={gameOver}
-                      className="text-sm text-black bg-white"
+                      className="text-sm text-foreground bg-background"
                     />
                     <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 
@@ -1729,9 +1750,14 @@ export default function MTGCubeGame() {
                         {filteredCards.map((card, index) => (
                           <button
                             key={card.name}
-                            className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground border-b border-border last:border-b-0 text-sm"
+                            className={`w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground border-b border-border last:border-b-0 text-sm ${
+                              index === selectedSuggestionIndex
+                                ? 'bg-accent text-accent-foreground'
+                                : ''
+                            }`}
                             onClick={() => makeGuess(card.name)}
                             onMouseDown={(e) => e.preventDefault()}
+                            onMouseEnter={() => setSelectedSuggestionIndex(index)}
                           >
                             {card.name}
                           </button>
