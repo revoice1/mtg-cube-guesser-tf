@@ -15,6 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { useLocalStorage } from "@/lib/hooks"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 // — Inserted for mana symbol support —
 const manaSymbolMap: Record<string, string> = {
@@ -1174,7 +1175,9 @@ export default function MTGCubeGame() {
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent animate-in fade-in slide-in-from-top-4 duration-1000 leading-tight">
               MTG Cube Guesser
             </h1>
-            <Dialog>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Dialog>
                 <DialogTrigger asChild>
                   <Button variant="outline" size="icon" className="shrink-0 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-white/20 hover:bg-white/90 dark:hover:bg-gray-800/90 transition-all duration-300 shadow-lg hover:shadow-xl">
                     <HelpCircle className="h-4 w-4" />
@@ -1307,7 +1310,8 @@ export default function MTGCubeGame() {
                   </div>
                 </div>
               </DialogContent>
-            </Dialog>
+              </Dialog>
+            </div>
           </div>
           <p className="text-muted-foreground text-lg leading-relaxed animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
         </div>
