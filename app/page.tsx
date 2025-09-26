@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Shuffle, Eye, EyeOff, Search, HelpCircle, ChevronDown, ChevronUp, Trophy, BarChart3, Timer } from "lucide-react"
+import { Loader2, Shuffle, Eye, EyeOff, Search, HelpCircle, ChevronDown, ChevronUp, Trophy, BarChart3, Timer, Brain, Zap } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -159,7 +159,7 @@ interface CubeData {
   cards: MTGCard[]
 }
 
-type GameMode = "infinite" | "5-card" | "10-card" | "timed" | "hardcore"
+type GameMode = "infinite" | "5-card" | "10-card" | "timed" | "hardcore" | "trivia" | "stats-challenge"
 
 interface GameStats {
   currentScore: number
@@ -173,6 +173,8 @@ interface HighScores {
   "10-card": number
   "timed": number
   "hardcore": number
+  "trivia": number
+  "stats-challenge": number
 }
 
 interface Statistics {
@@ -216,6 +218,8 @@ export default function MTGCubeGame() {
     "10-card": 0,
     "timed": 0,
     "hardcore": 0,
+    "trivia": 0,
+    "stats-challenge": 0,
   })
 
   const [statistics, setStatistics] = useLocalStorage<Statistics>("gameStatistics", {
@@ -232,10 +236,20 @@ export default function MTGCubeGame() {
   const [currentStreak, setCurrentStreak] = useState(0)
   const [guessHistory, setGuessHistory] = useState<string[]>([])
 
+  // Trivia mode states
+  const [triviaQuestion, setTriviaQuestion] = useState<string>("")
+  const [triviaAnswer, setTriviaAnswer] = useState<number>(0)
+  const [triviaOptions, setTriviaOptions] = useState<number[]>([])
+  const [triviaGuess, setTriviaGuess] = useState<number | null>(null)
+  const [triviaRevealed, setTriviaRevealed] = useState(false)
+  const [triviaQuestionCount, setTriviaQuestionCount] = useState(0)
+  const [triviaCorrectCount, setTriviaCorrectCount] = useState(0)
+  const [cubeStats, setCubeStats] = useState<any>(null)
+
   const MAX_GUESSES = 7
   const hints = ["Mana Value", "Color Identity", "Casting Cost", "Type", "Set", "Oracle Text", "Card Art"]
 
-  // Timer for timed mode
+  // Timer for timed mode and stats challenge
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (timerActive && timeLeft > 0 && !gameOver) {
@@ -243,7 +257,21 @@ export default function MTGCubeGame() {
         setTimeLeft((prev) => {
           if (prev <= 1) {
             setGameOver(true)
-            setShowAnswer(true)
+            if (gameMode === "stats-challenge") {
+              // End stats challenge
+              setGameStarted(false)
+              setTimerActive(false)
+              const finalScore = gameStats.currentScore
+              const currentHighScore = highScores[gameMode as keyof HighScores] || 0
+              if (finalScore > currentHighScore) {
+                setHighScores(prevHS => ({
+                  ...prevHS,
+                  [gameMode]: finalScore,
+                }))
+              }
+            } else {
+              setShowAnswer(true)
+            }
             setTimerActive(false)
             return 0
           }
@@ -252,7 +280,7 @@ export default function MTGCubeGame() {
       }, 1000)
     }
     return () => clearInterval(interval)
-  }, [timerActive, timeLeft, gameOver])
+  }, [timerActive, timeLeft, gameOver, gameMode, gameStats.currentScore])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -289,6 +317,254 @@ export default function MTGCubeGame() {
 
     return [...exactMatch, ...startsWithMatch, ...includesMatch].slice(0, 15)
   }, [cubeData?.cards, guess])
+
+  // Calculate cube statistics when cube data is loaded
+  const calculateCubeStats = () => {
+    if (!cubeData?.cards) return null
+
+    const cards = cubeData.cards
+    const stats = {
+      totalCards: cards.length,
+      colorCounts: {
+        white: cards.filter(c => c.colors?.includes('W')).length,
+        blue: cards.filter(c => c.colors?.includes('U')).length,
+        black: cards.filter(c => c.colors?.includes('B')).length,
+        red: cards.filter(c => c.colors?.includes('R')).length,
+        green: cards.filter(c => c.colors?.includes('G')).length,
+        colorless: cards.filter(c => !c.colors || c.colors.length === 0).length,
+        multicolor: cards.filter(c => c.colors && c.colors.length > 1).length,
+      },
+      cmcCounts: {} as Record<number, number>,
+      typeCounts: {
+        creature: cards.filter(c => c.type_line?.toLowerCase().includes('creature')).length,
+        instant: cards.filter(c => c.type_line?.toLowerCase().includes('instant')).length,
+        sorcery: cards.filter(c => c.type_line?.toLowerCase().includes('sorcery')).length,
+        artifact: cards.filter(c => c.type_line?.toLowerCase().includes('artifact')).length,
+        enchantment: cards.filter(c => c.type_line?.toLowerCase().includes('enchantment')).length,
+        planeswalker: cards.filter(c => c.type_line?.toLowerCase().includes('planeswalker')).length,
+        land: cards.filter(c => c.type_line?.toLowerCase().includes('land')).length,
+      },
+      keywordCounts: {
+        flying: cards.filter(c => c.oracle_text?.toLowerCase().includes('flying')).length,
+        vigilance: cards.filter(c => c.oracle_text?.toLowerCase().includes('vigilance')).length,
+        trample: cards.filter(c => c.oracle_text?.toLowerCase().includes('trample')).length,
+        haste: cards.filter(c => c.oracle_text?.toLowerCase().includes('haste')).length,
+        firstStrike: cards.filter(c => c.oracle_text?.toLowerCase().includes('first strike')).length,
+        deathtouch: cards.filter(c => c.oracle_text?.toLowerCase().includes('deathtouch')).length,
+        lifelink: cards.filter(c => c.oracle_text?.toLowerCase().includes('lifelink')).length,
+        flash: cards.filter(c => c.oracle_text?.toLowerCase().includes('flash')).length,
+        hexproof: cards.filter(c => c.oracle_text?.toLowerCase().includes('hexproof')).length,
+        draw: cards.filter(c => c.oracle_text?.toLowerCase().includes('draw')).length,
+      },
+      setDistribution: {} as Record<string, number>,
+      rarityDistribution: {
+        common: cards.filter(c => c.rarity === 'common').length,
+        uncommon: cards.filter(c => c.rarity === 'uncommon').length,
+        rare: cards.filter(c => c.rarity === 'rare').length,
+        mythic: cards.filter(c => c.rarity === 'mythic').length,
+      }
+    }
+
+    // Count CMC distribution
+    cards.forEach(card => {
+      const cmc = card.cmc || 0
+      stats.cmcCounts[cmc] = (stats.cmcCounts[cmc] || 0) + 1
+    })
+
+    // Count set distribution (top 5)
+    const setCounts: Record<string, number> = {}
+    cards.forEach(card => {
+      if (card.set_name) {
+        setCounts[card.set_name] = (setCounts[card.set_name] || 0) + 1
+      }
+    })
+    const topSets = Object.entries(setCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+    topSets.forEach(([set, count]) => {
+      stats.setDistribution[set] = count
+    })
+
+    return stats
+  }
+
+  // Generate trivia question
+  const generateTriviaQuestion = () => {
+    const stats = calculateCubeStats()
+    if (!stats || !cubeData) return
+
+    const questionTypes = [
+      {
+        question: "How many white cards are in this cube?",
+        answer: stats.colorCounts.white,
+        category: 'color'
+      },
+      {
+        question: "How many blue cards are in this cube?",
+        answer: stats.colorCounts.blue,
+        category: 'color'
+      },
+      {
+        question: "How many black cards are in this cube?",
+        answer: stats.colorCounts.black,
+        category: 'color'
+      },
+      {
+        question: "How many red cards are in this cube?",
+        answer: stats.colorCounts.red,
+        category: 'color'
+      },
+      {
+        question: "How many green cards are in this cube?",
+        answer: stats.colorCounts.green,
+        category: 'color'
+      },
+      {
+        question: "How many colorless cards are in this cube?",
+        answer: stats.colorCounts.colorless,
+        category: 'color'
+      },
+      {
+        question: "How many multicolor cards are in this cube?",
+        answer: stats.colorCounts.multicolor,
+        category: 'color'
+      },
+      {
+        question: "How many creatures are in this cube?",
+        answer: stats.typeCounts.creature,
+        category: 'type'
+      },
+      {
+        question: "How many instants are in this cube?",
+        answer: stats.typeCounts.instant,
+        category: 'type'
+      },
+      {
+        question: "How many sorceries are in this cube?",
+        answer: stats.typeCounts.sorcery,
+        category: 'type'
+      },
+      {
+        question: "How many artifacts are in this cube?",
+        answer: stats.typeCounts.artifact,
+        category: 'type'
+      },
+      {
+        question: "How many enchantments are in this cube?",
+        answer: stats.typeCounts.enchantment,
+        category: 'type'
+      },
+      {
+        question: "How many planeswalkers are in this cube?",
+        answer: stats.typeCounts.planeswalker,
+        category: 'type'
+      },
+      {
+        question: "How many lands are in this cube?",
+        answer: stats.typeCounts.land,
+        category: 'type'
+      },
+      {
+        question: "How many cards with flying are in this cube?",
+        answer: stats.keywordCounts.flying,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards with vigilance are in this cube?",
+        answer: stats.keywordCounts.vigilance,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards with trample are in this cube?",
+        answer: stats.keywordCounts.trample,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards with haste are in this cube?",
+        answer: stats.keywordCounts.haste,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards with deathtouch are in this cube?",
+        answer: stats.keywordCounts.deathtouch,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards with lifelink are in this cube?",
+        answer: stats.keywordCounts.lifelink,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards that draw cards are in this cube?",
+        answer: stats.keywordCounts.draw,
+        category: 'keyword'
+      },
+      {
+        question: "How many cards with mana value 1 are in this cube?",
+        answer: stats.cmcCounts[1] || 0,
+        category: 'cmc'
+      },
+      {
+        question: "How many cards with mana value 2 are in this cube?",
+        answer: stats.cmcCounts[2] || 0,
+        category: 'cmc'
+      },
+      {
+        question: "How many cards with mana value 3 are in this cube?",
+        answer: stats.cmcCounts[3] || 0,
+        category: 'cmc'
+      },
+      {
+        question: "How many cards with mana value 4 are in this cube?",
+        answer: stats.cmcCounts[4] || 0,
+        category: 'cmc'
+      },
+      {
+        question: "How many cards with mana value 5 are in this cube?",
+        answer: stats.cmcCounts[5] || 0,
+        category: 'cmc'
+      },
+      {
+        question: "How many cards with mana value 6+ are in this cube?",
+        answer: Object.entries(stats.cmcCounts).filter(([cmc]) => parseInt(cmc) >= 6).reduce((sum, [, count]) => sum + count, 0),
+        category: 'cmc'
+      },
+      {
+        question: "How many total cards are in this cube?",
+        answer: stats.totalCards,
+        category: 'general'
+      },
+    ]
+
+    // Pick a random question
+    const randomQuestion = questionTypes[Math.floor(Math.random() * questionTypes.length)]
+
+    // Generate wrong options (within reasonable range)
+    const correctAnswer = randomQuestion.answer
+    const options = [correctAnswer]
+
+    // Generate 3 wrong answers
+    while (options.length < 4) {
+      const variance = Math.max(5, Math.floor(correctAnswer * 0.3))
+      const min = Math.max(0, correctAnswer - variance)
+      const max = correctAnswer + variance
+      const wrongAnswer = Math.floor(Math.random() * (max - min + 1)) + min
+
+      if (!options.includes(wrongAnswer)) {
+        options.push(wrongAnswer)
+      }
+    }
+
+    // Shuffle options
+    options.sort(() => Math.random() - 0.5)
+
+    setTriviaQuestion(randomQuestion.question)
+    setTriviaAnswer(correctAnswer)
+    setTriviaOptions(options)
+    setTriviaGuess(null)
+    setTriviaRevealed(false)
+    setCubeStats(stats)
+  }
 
   const fetchCubeData = async () => {
     if (!cubeId.trim()) return
@@ -349,40 +625,65 @@ export default function MTGCubeGame() {
     if (!cubeData?.cards.length) return
 
     setGameMode(mode)
-    const randomIndex = Math.floor(Math.random() * cubeData.cards.length)
-    setSelectedCard(cubeData.cards[randomIndex])
-    setGameStarted(true)
-    setIsPanelCollapsed(true)
-    setCurrentHint(0)
-    setMaxHintRevealed(0)
-    setShowAnswer(false)
-    setGuess("")
-    setGuessesUsed(0)
-    setGameOver(false)
-    setIsCorrect(false)
-    setLastGuess("")
-    setShowConfetti(false)
-    setGuessHistory([])
-    setCurrentStreak(0)
 
-    if (mode === "timed") {
-      setTimeLeft(60)
-      setTimerActive(true)
-    } else {
-      setTimerActive(false)
-    }
+    if (mode === "trivia" || mode === "stats-challenge") {
+      // Start trivia/stats mode
+      setGameStarted(true)
+      setIsPanelCollapsed(true)
+      setTriviaQuestionCount(0)
+      setTriviaCorrectCount(0)
+      generateTriviaQuestion()
+      setGameOver(false)
 
-    if (mode !== "infinite") {
-      const totalCards = mode === "5-card" ? 5 :
-                        mode === "10-card" ? 10 :
-                        mode === "timed" ? 999 :
-                        mode === "hardcore" ? 3 : 0
+      if (mode === "stats-challenge") {
+        setTimeLeft(90) // 90 seconds for stats challenge
+        setTimerActive(true)
+      }
+
+      const totalCards = mode === "stats-challenge" ? 999 : 10
       setGameStats({
         currentScore: 0,
         cardsCompleted: 0,
         totalCards,
         highScore: highScores[mode as keyof HighScores] || 0,
       })
+    } else {
+      // Regular game mode
+      const randomIndex = Math.floor(Math.random() * cubeData.cards.length)
+      setSelectedCard(cubeData.cards[randomIndex])
+      setGameStarted(true)
+      setIsPanelCollapsed(true)
+      setCurrentHint(0)
+      setMaxHintRevealed(0)
+      setShowAnswer(false)
+      setGuess("")
+      setGuessesUsed(0)
+      setGameOver(false)
+      setIsCorrect(false)
+      setLastGuess("")
+      setShowConfetti(false)
+      setGuessHistory([])
+      setCurrentStreak(0)
+
+      if (mode === "timed") {
+        setTimeLeft(60)
+        setTimerActive(true)
+      } else {
+        setTimerActive(false)
+      }
+
+      if (mode !== "infinite") {
+        const totalCards = mode === "5-card" ? 5 :
+                          mode === "10-card" ? 10 :
+                          mode === "timed" ? 999 :
+                          mode === "hardcore" ? 3 : 0
+        setGameStats({
+          currentScore: 0,
+          cardsCompleted: 0,
+          totalCards,
+          highScore: highScores[mode as keyof HighScores] || 0,
+        })
+      }
     }
 
     // Update statistics
@@ -391,6 +692,76 @@ export default function MTGCubeGame() {
       totalGamesPlayed: prev.totalGamesPlayed + 1,
       favoriteMode: mode,
     }))
+  }
+
+  const submitTriviaAnswer = (answer: number) => {
+    if (triviaRevealed) return
+
+    setTriviaGuess(answer)
+    setTriviaRevealed(true)
+
+    const isCorrect = answer === triviaAnswer
+    const newQuestionCount = triviaQuestionCount + 1
+    const newCorrectCount = isCorrect ? triviaCorrectCount + 1 : triviaCorrectCount
+
+    setTriviaQuestionCount(newQuestionCount)
+    setTriviaCorrectCount(newCorrectCount)
+
+    if (isCorrect) {
+      setShowConfetti(true)
+      setTimeout(() => setShowConfetti(false), 2000)
+    }
+
+    // Update score
+    if (gameMode === "trivia" || gameMode === "stats-challenge") {
+      const pointsEarned = isCorrect ? 10 : 0
+      setGameStats(prev => ({
+        ...prev,
+        currentScore: prev.currentScore + pointsEarned,
+        cardsCompleted: newQuestionCount,
+      }))
+    }
+  }
+
+  const nextTriviaQuestion = () => {
+    if (gameMode === "trivia") {
+      if (triviaQuestionCount >= 10) {
+        // End trivia mode after 10 questions
+        setGameOver(true)
+        setGameStarted(false)
+
+        const finalScore = gameStats.currentScore
+        const currentHighScore = highScores[gameMode as keyof HighScores] || 0
+
+        if (finalScore > currentHighScore) {
+          setHighScores(prev => ({
+            ...prev,
+            [gameMode]: finalScore,
+          }))
+        }
+      } else {
+        generateTriviaQuestion()
+      }
+    } else if (gameMode === "stats-challenge") {
+      if (timeLeft <= 0) {
+        // End stats challenge when time runs out
+        setGameOver(true)
+        setGameStarted(false)
+        setTimerActive(false)
+
+        const finalScore = gameStats.currentScore
+        const currentHighScore = highScores[gameMode as keyof HighScores] || 0
+
+        if (finalScore > currentHighScore) {
+          setHighScores(prev => ({
+            ...prev,
+            [gameMode]: finalScore,
+          }))
+        }
+      } else {
+        generateTriviaQuestion()
+      }
+    }
   }
 
   const nextCard = () => {
@@ -966,6 +1337,30 @@ export default function MTGCubeGame() {
                           <div className="text-xs opacity-75">3 lives • High: {highScores["hardcore"]}</div>
                         </div>
                       </Button>
+
+                      <Button
+                        onClick={() => startNewGame("trivia")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "trivia" ? "default" : "outline"}
+                      >
+                        <Brain className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">Cube Trivia</div>
+                          <div className="text-xs opacity-75">10 questions • High: {highScores["trivia"]}</div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        onClick={() => startNewGame("stats-challenge")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "stats-challenge" ? "default" : "outline"}
+                      >
+                        <Zap className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">Stats Challenge</div>
+                          <div className="text-xs opacity-75">90s timer • High: {highScores["stats-challenge"]}</div>
+                        </div>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -979,12 +1374,17 @@ export default function MTGCubeGame() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex gap-4">
-                  {gameMode !== "timed" && (
+                  {(gameMode !== "timed" && gameMode !== "stats-challenge" && gameMode !== "trivia") && (
                     <Badge variant="secondary" className="text-sm">
                       Card {gameStats.cardsCompleted + 1} / {gameStats.totalCards}
                     </Badge>
                   )}
-                  {gameMode === "timed" && (
+                  {gameMode === "trivia" && (
+                    <Badge variant="secondary" className="text-sm">
+                      Question {triviaQuestionCount + 1} / 10
+                    </Badge>
+                  )}
+                  {(gameMode === "timed" || gameMode === "stats-challenge") && (
                     <Badge variant={timeLeft <= 10 ? "destructive" : "secondary"} className="text-sm">
                       <Timer className="h-3 w-3 mr-1" />
                       {timeLeft}s
@@ -996,7 +1396,7 @@ export default function MTGCubeGame() {
                   <Badge variant="outline" className="text-sm">
                     High Score: {gameStats.highScore}
                   </Badge>
-                  {currentStreak > 0 && (
+                  {currentStreak > 0 && gameMode !== "trivia" && gameMode !== "stats-challenge" && (
                     <Badge variant="outline" className="text-sm">
                       Streak: {currentStreak}
                     </Badge>
@@ -1006,14 +1406,100 @@ export default function MTGCubeGame() {
                   {gameMode === "5-card" ? "5 Card Challenge" :
                    gameMode === "10-card" ? "10 Card Challenge" :
                    gameMode === "timed" ? "Timed Mode" :
-                   gameMode === "hardcore" ? "Hardcore Mode" : ""}
+                   gameMode === "hardcore" ? "Hardcore Mode" :
+                   gameMode === "trivia" ? "Cube Trivia" :
+                   gameMode === "stats-challenge" ? "Stats Challenge" : ""}
                 </div>
               </div>
             </CardContent>
           </Card>
         )}
 
-        {gameStarted && selectedCard && (
+        {gameStarted && (gameMode === "trivia" || gameMode === "stats-challenge") && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>{gameMode === "trivia" ? "Cube Trivia" : "Stats Challenge"}</span>
+                <div className="flex gap-2">
+                  <Badge variant="outline">
+                    Question {triviaQuestionCount + 1} / {gameMode === "trivia" ? "10" : "∞"}
+                  </Badge>
+                  <Badge variant="secondary">
+                    Score: {gameStats.currentScore}
+                  </Badge>
+                  {gameMode === "stats-challenge" && (
+                    <Badge variant={timeLeft <= 10 ? "destructive" : "outline"}>
+                      <Timer className="h-3 w-3 mr-1" />
+                      {timeLeft}s
+                    </Badge>
+                  )}
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="text-center space-y-4">
+                <p className="text-xl font-medium">{triviaQuestion}</p>
+
+                <div className="grid grid-cols-2 gap-3 max-w-md mx-auto">
+                  {triviaOptions.map((option, idx) => (
+                    <Button
+                      key={idx}
+                      onClick={() => submitTriviaAnswer(option)}
+                      disabled={triviaRevealed}
+                      variant={
+                        triviaRevealed
+                          ? option === triviaAnswer
+                            ? "default"
+                            : triviaGuess === option
+                            ? "destructive"
+                            : "outline"
+                          : "outline"
+                      }
+                      className="h-16 text-lg"
+                    >
+                      {option}
+                      {triviaRevealed && option === triviaAnswer && " ✓"}
+                      {triviaRevealed && triviaGuess === option && option !== triviaAnswer && " ✗"}
+                    </Button>
+                  ))}
+                </div>
+
+                {triviaRevealed && (
+                  <div className="space-y-4">
+                    <div className={`p-3 rounded-lg ${
+                      triviaGuess === triviaAnswer
+                        ? "bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800"
+                        : "bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+                    }`}>
+                      <p className={`font-medium ${
+                        triviaGuess === triviaAnswer
+                          ? "text-green-700 dark:text-green-300"
+                          : "text-red-700 dark:text-red-300"
+                      }`}>
+                        {triviaGuess === triviaAnswer ? "Correct! +10 points" : `Incorrect! The answer was ${triviaAnswer}`}
+                      </p>
+                    </div>
+
+                    <Button
+                      onClick={nextTriviaQuestion}
+                      className="gap-2"
+                    >
+                      {triviaQuestionCount >= 9 && gameMode === "trivia"
+                        ? "Finish Quiz"
+                        : "Next Question"}
+                    </Button>
+                  </div>
+                )}
+
+                <div className="pt-4 text-sm text-muted-foreground">
+                  {triviaCorrectCount} / {triviaQuestionCount} correct so far
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {gameStarted && selectedCard && gameMode !== "trivia" && gameMode !== "stats-challenge" && (
           <div className="grid md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -1189,12 +1675,22 @@ export default function MTGCubeGame() {
           <Card>
             <CardHeader>
               <CardTitle className="text-center">
-                {gameMode === "5-card" ? "5 Card Challenge" : "10 Card Challenge"} Complete!
+                {gameMode === "5-card" ? "5 Card Challenge" :
+                 gameMode === "10-card" ? "10 Card Challenge" :
+                 gameMode === "trivia" ? "Cube Trivia" :
+                 gameMode === "stats-challenge" ? "Stats Challenge" :
+                 gameMode === "timed" ? "Timed Mode" :
+                 gameMode === "hardcore" ? "Hardcore Mode" : ""} Complete!
               </CardTitle>
             </CardHeader>
             <CardContent className="text-center space-y-4">
               <div className="space-y-2">
                 <p className="text-2xl font-bold">Final Score: {gameStats.currentScore}</p>
+                {(gameMode === "trivia" || gameMode === "stats-challenge") && (
+                  <p className="text-muted-foreground">
+                    {triviaCorrectCount} / {triviaQuestionCount} questions correct
+                  </p>
+                )}
                 <p className="text-muted-foreground">
                   {gameStats.currentScore > highScores[gameMode as keyof HighScores]
                     ? "🎉 New High Score!"
