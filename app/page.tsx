@@ -726,7 +726,7 @@ export default function MTGCubeGame() {
                       <li>Use hints to narrow down your guess (each hint after the first costs a guess)</li>
                       <li>Search and select your guess from the cube's card list</li>
                       <li>Win by guessing correctly or lose after 7 incorrect guesses</li>
-                    </ul>
+                    </ol>
                   </div>
 
                   <div>
@@ -746,8 +746,7 @@ export default function MTGCubeGame() {
                       </li>
                     </ul>
                   </div>
-                    </ol>
-                  </div>
+                </div>
 
                   <div>
                     <h3 className="font-semibold mb-2">💡 Hint System</h3>
