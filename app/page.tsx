@@ -1280,18 +1280,65 @@ export default function MTGCubeGame() {
                     {/* Keyboard Shortcuts */}
                     <div>
                       <h3 className="font-semibold mb-3 text-base">⌨️ Shortcuts</h3>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="space-y-3">
                         <div>
-                          <kbd className="px-2 py-1 bg-muted rounded text-xs">→</kbd> Next hint
+                          <p className="text-sm font-medium mb-2">Game Controls:</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">→</kbd> Next hint
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">←</kbd> Previous hint
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> Submit guess
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+R</kbd> Reveal answer
+                            </div>
+                          </div>
                         </div>
                         <div>
-                          <kbd className="px-2 py-1 bg-muted rounded text-xs">←</kbd> Previous hint
+                          <p className="text-sm font-medium mb-2">Search Navigation:</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">↓</kbd> Next result
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">↑</kbd> Previous result
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> Select highlighted
+                            </div>
+                            <div>
+                              <kbd className="px-2 py-1 bg-muted rounded text-xs">Esc</kbd> Close search
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <kbd className="px-2 py-1 bg-muted rounded text-xs">Enter</kbd> Submit guess
+                      </div>
+                    </div>
+
+                    {/* Accessibility & Theme */}
+                    <div>
+                      <h3 className="font-semibold mb-3 text-base">🎨 Theme & Accessibility</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-full"></div>
+                          </div>
+                          <span>Dark mode toggle in header (sun/moon icon)</span>
                         </div>
-                        <div>
-                          <kbd className="px-2 py-1 bg-muted rounded text-xs">Ctrl+R</kbd> Reveal answer
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs">⚡</span>
+                          </div>
+                          <span>Automatically detects your system preference</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 bg-muted rounded flex items-center justify-center">
+                            <span className="text-xs">💾</span>
+                          </div>
+                          <span>Theme preference saved across visits</span>
                         </div>
                       </div>
                     </div>
@@ -1303,9 +1350,11 @@ export default function MTGCubeGame() {
                       </p>
                       <ul className="list-disc list-inside text-xs mt-1 space-y-0.5 ml-2">
                         <li>Card names are [REDACTED] in oracle text</li>
+                        <li>Use ↑/↓ arrows to navigate search results quickly</li>
                         <li>Start typing to search the cube's cards</li>
                         <li>High scores save automatically</li>
                         <li>Fuzzy search helps with typos</li>
+                        <li>Toggle dark mode for comfortable viewing</li>
                       </ul>
                     </div>
                   </div>
