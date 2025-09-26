@@ -1295,7 +1295,7 @@ export default function MTGCubeGame() {
                   placeholder="Enter Cube Cobra ID (e.g., 11sg)"
                   value={cubeId}
                   onChange={(e) => setCubeId(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && fetchCubeData()}
+                  onKeyDown={(e) => e.key === "Enter" && cubeId.trim() && fetchCubeData()}
                   disabled={loading}
                 />
                 <Button onClick={fetchCubeData} disabled={loading || !cubeId.trim()}>
