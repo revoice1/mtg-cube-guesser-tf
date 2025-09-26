@@ -14,6 +14,18 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
     }
   })
 
+  // Hydration fix: Check localStorage again after mount
+  useEffect(() => {
+    try {
+      const item = window.localStorage.getItem(key)
+      if (item) {
+        setStoredValue(JSON.parse(item))
+      }
+    } catch (error) {
+      console.warn(`Error reading localStorage key "${key}" on mount:`, error)
+    }
+  }, [key])
+
   const setValue = (value: T | ((prev: T) => T)) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value
