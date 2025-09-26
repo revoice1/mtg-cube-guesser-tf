@@ -668,7 +668,7 @@ export default function MTGCubeGame() {
       default:
         return null
     }
-  } // End of renderHint
+  // End of renderHint
 
   // Component return
   return (
@@ -746,7 +746,6 @@ export default function MTGCubeGame() {
                       </li>
                     </ul>
                   </div>
-                </div>
 
                   <div>
                     <h3 className="font-semibold mb-2">💡 Hint System</h3>
@@ -811,6 +810,7 @@ export default function MTGCubeGame() {
                 </div>
               </DialogContent>
             </Dialog>
+          </div>
           <p className="text-muted-foreground">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
         </div>
 
@@ -1211,4 +1211,4 @@ export default function MTGCubeGame() {
       </div>
     </div>
   )
-}
+} // End of MTGCubeGame component
