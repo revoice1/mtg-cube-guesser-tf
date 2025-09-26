@@ -670,7 +670,6 @@ export default function MTGCubeGame() {
     }
   }
 
-
   return (
     <div className="min-h-screen bg-background p-4">
       {showConfetti && (
