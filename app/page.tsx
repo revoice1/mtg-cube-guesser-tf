@@ -1045,24 +1045,94 @@ export default function MTGCubeGame() {
   return (
     <div className="min-h-screen bg-background p-4">
       {showConfetti && (
-        <div className="fixed inset-0 pointer-events-none z-50">
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(50)].map((_, i) => (
+        <>
+          <style>{`
+            @keyframes confetti-fall {
+              0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+              }
+              100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+              }
+            }
+            @keyframes confetti-shake {
+              0%, 100% {
+                transform: translateX(0);
+              }
+              25% {
+                transform: translateX(-10px);
+              }
+              75% {
+                transform: translateX(10px);
+              }
+            }
+            @keyframes success-pulse {
+              0% {
+                transform: scale(0.5);
+                opacity: 0;
+              }
+              50% {
+                transform: scale(1.2);
+              }
+              100% {
+                transform: scale(1);
+                opacity: 1;
+              }
+            }
+            @keyframes rainbow-text {
+              0% { color: #FF6B6B; }
+              14% { color: #4ECDC4; }
+              28% { color: #45B7D1; }
+              42% { color: #96CEB4; }
+              57% { color: #FECA57; }
+              71% { color: #FF9FF3; }
+              85% { color: #54A0FF; }
+              100% { color: #FF6B6B; }
+            }
+          `}</style>
+          <div className="fixed inset-0 pointer-events-none z-50">
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(60)].map((_, i) => {
+                const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF', '#48C9B0']
+                const shapes = ['▪', '▴', '▸', '▾', '◆', '●', '■', '▲']
+                const randomColor = colors[Math.floor(Math.random() * colors.length)]
+                const randomShape = shapes[Math.floor(Math.random() * shapes.length)]
+                const randomDelay = Math.random() * 0.8
+                const randomLeft = Math.random() * 100
+                const randomSize = 8 + Math.random() * 16
+                const randomDuration = 2 + Math.random() * 1.5
+
+                return (
+                  <div
+                    key={i}
+                    className="absolute"
+                    style={{
+                      left: `${randomLeft}%`,
+                      color: randomColor,
+                      fontSize: `${randomSize}px`,
+                      animation: `confetti-fall ${randomDuration}s linear forwards ${randomDelay}s, confetti-shake 0.5s ease-in-out infinite ${randomDelay}s`,
+                    }}
+                  >
+                    {randomShape}
+                  </div>
+                )
+              })}
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center">
               <div
-                key={i}
-                className="absolute animate-bounce"
+                className="text-6xl font-bold"
                 style={{
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  animationDelay: `${Math.random() * 2}s`,
-                  animationDuration: `${2 + Math.random() * 2}s`,
+                  animation: 'success-pulse 0.6s ease-out, rainbow-text 2s linear infinite',
+                  textShadow: '0 0 30px rgba(34, 197, 94, 0.5)',
                 }}
               >
-                🎉
+                ✨ Correct! ✨
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       <div className="max-w-4xl mx-auto space-y-6">
