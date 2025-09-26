@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Shuffle, Eye, EyeOff, Search, HelpCircle, ChevronDown, ChevronUp } from "lucide-react"
+import { Loader2, Shuffle, Eye, EyeOff, Search, HelpCircle, ChevronDown, ChevronUp, Trophy, BarChart3, Timer } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { useLocalStorage } from "@/lib/hooks"
 
 // — Inserted for mana symbol support —
 const manaSymbolMap: Record<string, string> = {
@@ -158,7 +159,7 @@ interface CubeData {
   cards: MTGCard[]
 }
 
-type GameMode = "infinite" | "5-card" | "10-card"
+type GameMode = "infinite" | "5-card" | "10-card" | "timed" | "hardcore"
 
 interface GameStats {
   currentScore: number
@@ -167,13 +168,25 @@ interface GameStats {
   highScore: number
 }
 
-const sessionHighScores = {
-  "5-card": 0,
-  "10-card": 0,
+interface HighScores {
+  "5-card": number
+  "10-card": number
+  "timed": number
+  "hardcore": number
 }
 
+interface Statistics {
+  totalGamesPlayed: number
+  totalCardsGuessed: number
+  averageGuessesPerCard: number
+  bestStreak: number
+  currentStreak: number
+  favoriteMode: GameMode | null
+}
+
+
 export default function MTGCubeGame() {
-  const [cubeId, setCubeId] = useState("")
+  const [cubeId, setCubeId] = useLocalStorage("lastCubeId", "")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cubeData, setCubeData] = useState<CubeData | null>(null)
@@ -198,14 +211,83 @@ export default function MTGCubeGame() {
     highScore: 0,
   })
 
+  const [highScores, setHighScores] = useLocalStorage<HighScores>("highScores", {
+    "5-card": 0,
+    "10-card": 0,
+    "timed": 0,
+    "hardcore": 0,
+  })
+
+  const [statistics, setStatistics] = useLocalStorage<Statistics>("gameStatistics", {
+    totalGamesPlayed: 0,
+    totalCardsGuessed: 0,
+    averageGuessesPerCard: 0,
+    bestStreak: 0,
+    currentStreak: 0,
+    favoriteMode: null,
+  })
+
+  const [timeLeft, setTimeLeft] = useState(60)
+  const [timerActive, setTimerActive] = useState(false)
+  const [currentStreak, setCurrentStreak] = useState(0)
+  const [guessHistory, setGuessHistory] = useState<string[]>([])
+
   const MAX_GUESSES = 7
   const hints = ["Mana Value", "Color Identity", "Casting Cost", "Type", "Set", "Oracle Text", "Card Art"]
+
+  // Timer for timed mode
+  useEffect(() => {
+    let interval: NodeJS.Timeout
+    if (timerActive && timeLeft > 0 && !gameOver) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setGameOver(true)
+            setShowAnswer(true)
+            setTimerActive(false)
+            return 0
+          }
+          return prev - 1
+        })
+      }, 1000)
+    }
+    return () => clearInterval(interval)
+  }, [timerActive, timeLeft, gameOver])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (gameStarted && !gameOver && selectedCard) {
+        if (e.key === 'ArrowRight' && currentHint < hints.length - 1) {
+          nextHint()
+        } else if (e.key === 'ArrowLeft' && currentHint > 0 && currentHint <= maxHintRevealed) {
+          goToPreviousHint()
+        } else if (e.key === 'r' && e.ctrlKey) {
+          e.preventDefault()
+          revealAnswer()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [gameStarted, gameOver, currentHint, maxHintRevealed, selectedCard])
 
   const filteredCards = useMemo(() => {
     if (!cubeData?.cards || !guess.trim()) return []
 
-    const searchTerm = guess.toLowerCase()
-    return cubeData.cards.filter((card) => card.name.toLowerCase().includes(searchTerm)).slice(0, 10) // Limit to 10 results for performance
+    const searchTerm = guess.toLowerCase().trim()
+    const exactMatch = cubeData.cards.filter((card) => card.name.toLowerCase() === searchTerm)
+    const startsWithMatch = cubeData.cards.filter((card) =>
+      card.name.toLowerCase().startsWith(searchTerm) && !exactMatch.includes(card)
+    )
+    const includesMatch = cubeData.cards.filter((card) =>
+      card.name.toLowerCase().includes(searchTerm) &&
+      !exactMatch.includes(card) &&
+      !startsWithMatch.includes(card)
+    )
+
+    return [...exactMatch, ...startsWithMatch, ...includesMatch].slice(0, 15)
   }, [cubeData?.cards, guess])
 
   const fetchCubeData = async () => {
@@ -244,11 +326,15 @@ export default function MTGCubeGame() {
       setIsCorrect(false)
       setLastGuess("")
       setShowConfetti(false)
+      const totalCards = gameMode === "5-card" ? 5 :
+                          gameMode === "10-card" ? 10 :
+                          gameMode === "timed" ? 999 :
+                          gameMode === "hardcore" ? 3 : 0
       setGameStats({
         currentScore: 0,
         cardsCompleted: 0,
-        totalCards: gameMode === "5-card" ? 5 : gameMode === "10-card" ? 10 : 0,
-        highScore: sessionHighScores[gameMode as "5-card" | "10-card"] || 0,
+        totalCards,
+        highScore: highScores[gameMode as keyof HighScores] || 0,
       })
     } catch (error) {
       console.error("Error fetching cube:", error)
@@ -266,7 +352,7 @@ export default function MTGCubeGame() {
     const randomIndex = Math.floor(Math.random() * cubeData.cards.length)
     setSelectedCard(cubeData.cards[randomIndex])
     setGameStarted(true)
-    setIsPanelCollapsed(true) // Auto-collapse panel when game starts to save screen space
+    setIsPanelCollapsed(true)
     setCurrentHint(0)
     setMaxHintRevealed(0)
     setShowAnswer(false)
@@ -276,16 +362,35 @@ export default function MTGCubeGame() {
     setIsCorrect(false)
     setLastGuess("")
     setShowConfetti(false)
+    setGuessHistory([])
+    setCurrentStreak(0)
+
+    if (mode === "timed") {
+      setTimeLeft(60)
+      setTimerActive(true)
+    } else {
+      setTimerActive(false)
+    }
 
     if (mode !== "infinite") {
-      const totalCards = mode === "5-card" ? 5 : 10
+      const totalCards = mode === "5-card" ? 5 :
+                        mode === "10-card" ? 10 :
+                        mode === "timed" ? 999 :
+                        mode === "hardcore" ? 3 : 0
       setGameStats({
         currentScore: 0,
         cardsCompleted: 0,
         totalCards,
-        highScore: sessionHighScores[mode as "5-card" | "10-card"] || 0,
+        highScore: highScores[mode as keyof HighScores] || 0,
       })
     }
+
+    // Update statistics
+    setStatistics(prev => ({
+      ...prev,
+      totalGamesPlayed: prev.totalGamesPlayed + 1,
+      favoriteMode: mode,
+    }))
   }
 
   const nextCard = () => {
@@ -296,19 +401,38 @@ export default function MTGCubeGame() {
 
     const newCardsCompleted = gameStats.cardsCompleted + 1
 
-    if (newCardsCompleted >= gameStats.totalCards) {
+    if (gameMode === "timed" && timeLeft > 0) {
+      // Continue in timed mode
+      const randomIndex = Math.floor(Math.random() * cubeData!.cards.length)
+      setSelectedCard(cubeData!.cards[randomIndex])
+      setCurrentHint(0)
+      setMaxHintRevealed(0)
+      setShowAnswer(false)
+      setGuess("")
+      setGuessesUsed(0)
+      setGameOver(false)
+      setIsCorrect(false)
+      setLastGuess("")
+      setShowConfetti(false)
+      setGuessHistory([])
+      setGameStats((prev) => ({ ...prev, cardsCompleted: newCardsCompleted }))
+      return
+    }
+
+    if (newCardsCompleted >= gameStats.totalCards || (gameMode === "timed" && timeLeft <= 0)) {
       // Game mode completed
       const finalScore = gameStats.currentScore
-      const currentHighScore = sessionHighScores[gameMode as "5-card" | "10-card"]
+      const currentHighScore = highScores[gameMode as keyof HighScores] || 0
 
       if (finalScore > currentHighScore) {
-        setSessionHighScores((prev) => ({
+        setHighScores((prev) => ({
           ...prev,
           [gameMode]: finalScore,
         }))
       }
 
       setGameStarted(false)
+      setTimerActive(false)
       setGameStats((prev) => ({ ...prev, cardsCompleted: newCardsCompleted }))
     } else {
       // Continue to next card
@@ -323,6 +447,7 @@ export default function MTGCubeGame() {
       setIsCorrect(false)
       setLastGuess("")
       setShowConfetti(false)
+      setGuessHistory([])
       setGameStats((prev) => ({ ...prev, cardsCompleted: newCardsCompleted }))
     }
   }
@@ -364,25 +489,61 @@ export default function MTGCubeGame() {
     const newGuessesUsed = guessesUsed + 1
     setGuessesUsed(newGuessesUsed)
     setLastGuess(cardName)
+    setGuessHistory(prev => [...prev, cardName])
 
-    if (cardName.toLowerCase() === selectedCard?.name.toLowerCase()) {
+    // Check if guess is correct (with fuzzy matching)
+    const isExactMatch = cardName.toLowerCase() === selectedCard?.name.toLowerCase()
+    const isCloseMatch = cardName.toLowerCase().replace(/[^a-z0-9]/g, '') ===
+                         selectedCard?.name.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+    if (isExactMatch || isCloseMatch) {
       setIsCorrect(true)
       setShowAnswer(true)
       setGameOver(true)
       setShowConfetti(true)
       setTimeout(() => setShowConfetti(false), 3000)
 
-      if (gameMode !== "infinite") {
-        const pointsEarned = MAX_GUESSES - guessesUsed
-        setGameStats((prev) => ({
+      // Update streak
+      const newStreak = currentStreak + 1
+      setCurrentStreak(newStreak)
+
+      // Update statistics
+      setStatistics(prev => {
+        const newTotal = prev.totalCardsGuessed + 1
+        const totalGuesses = prev.averageGuessesPerCard * prev.totalCardsGuessed + newGuessesUsed
+        return {
           ...prev,
-          currentScore: prev.currentScore + pointsEarned,
-        }))
+          totalCardsGuessed: newTotal,
+          averageGuessesPerCard: totalGuesses / newTotal,
+          currentStreak: newStreak,
+          bestStreak: Math.max(prev.bestStreak, newStreak),
+        }
+      })
+
+      if (gameMode !== "infinite") {
+        const pointsEarned = gameMode === "hardcore" ?
+          (newGuessesUsed === 1 ? 10 : newGuessesUsed === 2 ? 5 : 2) :
+          (MAX_GUESSES - guessesUsed)
+
+        if (gameMode === "timed") {
+          const timeBonus = Math.floor(timeLeft / 10)
+          setGameStats((prev) => ({
+            ...prev,
+            currentScore: prev.currentScore + pointsEarned + timeBonus,
+          }))
+        } else {
+          setGameStats((prev) => ({
+            ...prev,
+            currentScore: prev.currentScore + pointsEarned,
+          }))
+        }
       }
-    } else if (newGuessesUsed >= MAX_GUESSES) {
+    } else if (newGuessesUsed >= (gameMode === "hardcore" ? 3 : MAX_GUESSES)) {
       setGameOver(true)
       setShowAnswer(true)
       setIsCorrect(false)
+      setCurrentStreak(0)
+      setStatistics(prev => ({ ...prev, currentStreak: 0 }))
     }
 
     setGuess("")
@@ -509,11 +670,6 @@ export default function MTGCubeGame() {
     }
   }
 
-  const setSessionHighScores = (newScores: any) => {
-    // This function is a placeholder for setting session high scores
-    // In a real application, you would use a state management library or context to handle this
-    console.log("Setting session high scores:", newScores)
-  }
 
   return (
     <div className="min-h-screen bg-background p-4">
@@ -570,6 +726,26 @@ export default function MTGCubeGame() {
                       <li>Use hints to narrow down your guess (each hint after the first costs a guess)</li>
                       <li>Search and select your guess from the cube's card list</li>
                       <li>Win by guessing correctly or lose after 7 incorrect guesses</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-semibold mb-2">⌨️ Keyboard Shortcuts</h3>
+                    <ul className="list-disc list-inside space-y-1 ml-2">
+                      <li>
+                        <strong>Arrow Right:</strong> Next hint (costs a guess)
+                      </li>
+                      <li>
+                        <strong>Arrow Left:</strong> Previous hint (free navigation)
+                      </li>
+                      <li>
+                        <strong>Enter:</strong> Submit guess (in search box)
+                      </li>
+                      <li>
+                        <strong>Ctrl+R:</strong> Reveal answer
+                      </li>
+                    </ul>
+                  </div>
                     </ol>
                   </div>
 
@@ -636,7 +812,6 @@ export default function MTGCubeGame() {
                 </div>
               </DialogContent>
             </Dialog>
-          </div>
           <p className="text-muted-foreground">Enter a Cube Cobra ID to start guessing cards from that cube!</p>
         </div>
 
@@ -732,7 +907,7 @@ export default function MTGCubeGame() {
 
                   <div className="space-y-3">
                     <p className="font-medium">Choose Game Mode:</p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                       <Button
                         onClick={() => startNewGame("infinite")}
                         className="gap-2 h-auto p-4 flex-col"
@@ -750,10 +925,10 @@ export default function MTGCubeGame() {
                         className="gap-2 h-auto p-4 flex-col"
                         variant={gameMode === "5-card" ? "default" : "outline"}
                       >
-                        <Shuffle className="h-4 w-4" />
+                        <Trophy className="h-4 w-4" />
                         <div className="text-center">
                           <div className="font-medium">5 Card Challenge</div>
-                          <div className="text-xs opacity-75">High Score: {sessionHighScores["5-card"]}</div>
+                          <div className="text-xs opacity-75">High Score: {highScores["5-card"]}</div>
                         </div>
                       </Button>
 
@@ -762,10 +937,34 @@ export default function MTGCubeGame() {
                         className="gap-2 h-auto p-4 flex-col"
                         variant={gameMode === "10-card" ? "default" : "outline"}
                       >
-                        <Shuffle className="h-4 w-4" />
+                        <Trophy className="h-4 w-4" />
                         <div className="text-center">
                           <div className="font-medium">10 Card Challenge</div>
-                          <div className="text-xs opacity-75">High Score: {sessionHighScores["10-card"]}</div>
+                          <div className="text-xs opacity-75">High Score: {highScores["10-card"]}</div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        onClick={() => startNewGame("timed")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "timed" ? "default" : "outline"}
+                      >
+                        <Timer className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">Timed Mode</div>
+                          <div className="text-xs opacity-75">60 seconds • High: {highScores["timed"]}</div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        onClick={() => startNewGame("hardcore")}
+                        className="gap-2 h-auto p-4 flex-col"
+                        variant={gameMode === "hardcore" ? "default" : "outline"}
+                      >
+                        <BarChart3 className="h-4 w-4" />
+                        <div className="text-center">
+                          <div className="font-medium">Hardcore</div>
+                          <div className="text-xs opacity-75">3 lives • High: {highScores["hardcore"]}</div>
                         </div>
                       </Button>
                     </div>
@@ -781,18 +980,34 @@ export default function MTGCubeGame() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div className="flex gap-4">
-                  <Badge variant="secondary" className="text-sm">
-                    Card {gameStats.cardsCompleted + 1} / {gameStats.totalCards}
-                  </Badge>
+                  {gameMode !== "timed" && (
+                    <Badge variant="secondary" className="text-sm">
+                      Card {gameStats.cardsCompleted + 1} / {gameStats.totalCards}
+                    </Badge>
+                  )}
+                  {gameMode === "timed" && (
+                    <Badge variant={timeLeft <= 10 ? "destructive" : "secondary"} className="text-sm">
+                      <Timer className="h-3 w-3 mr-1" />
+                      {timeLeft}s
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-sm">
                     Score: {gameStats.currentScore}
                   </Badge>
                   <Badge variant="outline" className="text-sm">
                     High Score: {gameStats.highScore}
                   </Badge>
+                  {currentStreak > 0 && (
+                    <Badge variant="outline" className="text-sm">
+                      Streak: {currentStreak}
+                    </Badge>
+                  )}
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  {gameMode === "5-card" ? "5 Card Challenge" : "10 Card Challenge"}
+                  {gameMode === "5-card" ? "5 Card Challenge" :
+                   gameMode === "10-card" ? "10 Card Challenge" :
+                   gameMode === "timed" ? "Timed Mode" :
+                   gameMode === "hardcore" ? "Hardcore Mode" : ""}
                 </div>
               </div>
             </CardContent>
@@ -809,8 +1024,8 @@ export default function MTGCubeGame() {
                     <Badge variant="outline">
                       {currentHint + 1} / {hints.length}
                     </Badge>
-                    <Badge variant={guessesUsed >= MAX_GUESSES - 2 ? "destructive" : "secondary"}>
-                      {guessesUsed} / {MAX_GUESSES} guesses
+                    <Badge variant={guessesUsed >= (gameMode === "hardcore" ? 2 : MAX_GUESSES - 2) ? "destructive" : "secondary"}>
+                      {guessesUsed} / {gameMode === "hardcore" ? "3" : MAX_GUESSES} guesses
                     </Badge>
                   </div>
                 </CardTitle>
@@ -982,9 +1197,9 @@ export default function MTGCubeGame() {
               <div className="space-y-2">
                 <p className="text-2xl font-bold">Final Score: {gameStats.currentScore}</p>
                 <p className="text-muted-foreground">
-                  {gameStats.currentScore > sessionHighScores[gameMode as "5-card" | "10-card"]
+                  {gameStats.currentScore > highScores[gameMode as keyof HighScores]
                     ? "🎉 New High Score!"
-                    : `High Score: ${sessionHighScores[gameMode as "5-card" | "10-card"]}`}
+                    : `High Score: ${highScores[gameMode as keyof HighScores]}`}
                 </p>
               </div>
               <Button onClick={() => startNewGame(gameMode)} className="gap-2">
