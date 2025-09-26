@@ -668,8 +668,9 @@ export default function MTGCubeGame() {
       default:
         return null
     }
-  }
+  } // End of renderHint
 
+  // Component return
   return (
     <div className="min-h-screen bg-background p-4">
       {showConfetti && (
